@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useCart } from '../context/CartContext.jsx';
 
 // Barra de navegación
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { cart } = useCart(); // Obtener el estado del carrito
   
   return (
     <>
@@ -53,12 +55,14 @@ export function Navbar() {
             </form>
             
             <div className="d-flex align-items-center">
-              {/* Se eliminó el icono del corazón como solicitado */}
+              {/* Icono del carrito con contador dinámico */}
               <Link to="/cesta" className="text-dark position-relative me-3">
                 <i className="bi bi-cart3 fs-5"></i>
-                <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary">
-                  3
-                </span>
+                {cart.totalItems > 0 && (
+                  <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary">
+                    {cart.totalItems}
+                  </span>
+                )}
               </Link>
               {/* Icono de usuario sin modificar */}
               <a href="./register" className="text-dark">
