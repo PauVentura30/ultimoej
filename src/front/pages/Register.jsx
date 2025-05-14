@@ -3,7 +3,7 @@ import rigoImageUrl from "../assets/img/rigo-baby.jpg";
 import useGlobalReducer from "../hooks/useGlobalReducer.jsx";
 import { useNavigate } from "react-router-dom";
 
-export const Home = () => {
+export const Register = () => {
 
     const { store, dispatch } = useGlobalReducer()
     const [email, setEmail] = useState("")
@@ -15,6 +15,9 @@ export const Home = () => {
         e.preventDefault()
         try {
             const response = await signup(email, password)
+                if (!response.ok){
+                    throw new Error(`${response.status}`)
+                }
             const data = await response.json()
             dispatch({type:"signup_access", payload:{user: data.user}})
             setEmail("")
@@ -27,7 +30,7 @@ export const Home = () => {
     
     const signup = async(email, password) => {
 
-    const response = await fetch(import.meta.env.VITE_BACKEND_URL + "api/signup", {
+    const response = await fetch( "https://ubiquitous-space-doodle-4jwj6wq5rw9q26jp-3001.app.github.dev/api/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password })

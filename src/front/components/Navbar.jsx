@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 // Barra de navegación
 export function Navbar() {
@@ -6,17 +7,10 @@ export function Navbar() {
   
   return (
     <>
-      {/* Banner superior */}
-      <div className="bg-primary text-white py-2 text-center">
-        <div className="container">
-          <small>¡Ofertas especiales! 20% de descuento en todos los productos - ¡Por tiempo limitado!</small>
-        </div>
-      </div>
-      
       {/* Navbar principal */}
       <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
         <div className="container">
-          <a className="navbar-brand fw-bold text-primary" href="#">BambasShop</a>
+          <Link className="navbar-brand fw-bold text-primary" to="/">BambasShop</Link>
           
           <button 
             className="navbar-toggler" 
@@ -29,19 +23,19 @@ export function Navbar() {
           <div className={`collapse navbar-collapse ${isMenuOpen ? 'show' : ''}`}>
             <ul className="navbar-nav me-auto mb-2 mb-lg-0">
               <li className="nav-item">
-                <a className="nav-link active" href="#">Inicio</a>
+                <Link className="nav-link active" to="/">Inicio</Link>
               </li>
               <li className="nav-item">
-                <a className="nav-link" href="#">Productos</a>
+                <Link className="nav-link" to="/productos">Productos</Link>
               </li>
               <li className="nav-item">
-                <a className="nav-link" href="#">Categorías</a>
+                <Link className="nav-link" to="/categorias">Categorías</Link>
               </li>
               <li className="nav-item">
-                <a className="nav-link" href="#">Ofertas</a>
+                <Link className="nav-link" to="/ofertas">Ofertas</Link>
               </li>
               <li className="nav-item">
-                <a className="nav-link" href="#">Contacto</a>
+                <Link className="nav-link" to="/contacto">Contacto</Link>
               </li>
             </ul>
             
@@ -59,14 +53,16 @@ export function Navbar() {
             </form>
             
             <div className="d-flex align-items-center">
-              <a href="#" className="text-dark me-3">
-                <i className="bi bi-heart fs-5"></i>
-              </a>
-              <a href="#" className="text-dark position-relative">
+              {/* Se eliminó el icono del corazón como solicitado */}
+              <Link to="/cesta" className="text-dark position-relative me-3">
                 <i className="bi bi-cart3 fs-5"></i>
                 <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary">
                   3
                 </span>
+              </Link>
+              {/* Icono de usuario sin modificar */}
+              <a href="./register" className="text-dark">
+                <i className="bi bi-person fs-5"></i>
               </a>
             </div>
           </div>

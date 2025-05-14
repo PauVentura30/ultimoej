@@ -277,7 +277,7 @@ const Footer = () => (
     <div className="container">
       <div className="row g-4">
         <div className="col-lg-3 col-md-6">
-          <h5 className="mb-3">TiendaX</h5>
+          <h5 className="mb-3">BambasShop</h5>
           <p className="mb-3">Tu tienda online de confianza para todos tus productos favoritos.</p>
           <div className="d-flex gap-2">
             <a href="#" className="text-white">
@@ -323,7 +323,7 @@ const Footer = () => (
             </li>
             <li className="mb-2 d-flex align-items-center">
               <i className="bi bi-envelope me-2"></i>
-              info@tiendax.com
+              info@bambasshop.com
             </li>
             <li className="mb-2 d-flex align-items-center">
               <i className="bi bi-telephone me-2"></i>
@@ -337,7 +337,7 @@ const Footer = () => (
       
       <div className="row align-items-center">
         <div className="col-md-6 mb-3 mb-md-0">
-          <p className="mb-0">&copy; 2025 TiendaX. Todos los derechos reservados.</p>
+          <p className="mb-0">&copy; 2025 BambasShop. Todos los derechos reservados.</p>
         </div>
         <div className="col-md-6 text-md-end">
           <img src="https://via.placeholder.com/40x25" alt="Visa" className="me-2 mb-2 payment-icon" />
@@ -354,7 +354,7 @@ const Footer = () => (
 export function Home() {
   return (
     <>
-      {/* Necesitamos incluir los enlaces de Bootstrap CSS y Bootstrap Icons para que funcione correctamente */}
+      {/* Los enlaces de Bootstrap CSS y Bootstrap Icons */}
       <link 
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" 
         rel="stylesheet" 
