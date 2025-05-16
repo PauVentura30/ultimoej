@@ -1,60 +1,43 @@
-// Componente de ejemplo para añadir un producto al carrito
-import { useCart } from '../context/CartContext';
+import React from 'react';
+import useGlobalReducer from '../path/to/your/useGlobalReducer'; // Ajusta esta ruta
 
-export function ProductCard({ product }) {
-  const { addItem } = useCart();
-
-  const handleAddToCart = () => {
-    addItem(product);
-    // Opcional: Mostrar un mensaje de confirmación
-    alert(`${product.name} añadido al carrito`);
+const ProductCard = ({ product }) => {
+  const { dispatch } = useGlobalReducer();
+  
+  const addToCart = () => {
+    dispatch({
+      type: 'add_to_cart',
+      payload: {
+        ...product,
+        quantity: 1,
+      }
+    });
   };
-
+  
   return (
-    <div className="card h-100 shadow-sm hover-shadow">
-      <div className="position-relative">
-        <img src={product.image} className="card-img-top" alt={product.name} />
-        {product.badge && (
-          <span className={`position-absolute top-0 end-0 m-2 badge ${
-            product.badge === 'Oferta' ? 'bg-danger' :
-            product.badge === 'Nuevo' ? 'bg-success' :
-            'bg-primary'
-          }`}>
-            {product.badge}
-          </span>
-        )}
-      </div>
-      
-      <div className="card-body">
-        <h5 className="card-title">{product.name}</h5>
-        <div className="mb-2 d-flex align-items-center">
-          <div className="text-warning me-1">
-            <i className="bi bi-star-fill"></i>
-            <i className="bi bi-star-fill"></i>
-            <i className="bi bi-star-fill"></i>
-            <i className="bi bi-star-fill"></i>
-            <i className="bi bi-star"></i>
-          </div>
-          <small className="text-muted">{product.rating} ({product.reviews})</small>
-        </div>
-        
-        <div className="d-flex justify-content-between align-items-center">
-          <div>
-            {product.oldPrice && (
-              <small className="text-decoration-line-through text-muted me-2">${product.oldPrice}</small>
-            )}
-            <span className="fw-bold">${product.price}</span>
-          </div>
-          <button 
-            className="btn btn-primary btn-sm"
-            onClick={handleAddToCart}
+    <div className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+      {product.image && (
+        <img 
+          src={product.image} 
+          alt={product.name} 
+          className="w-full h-48 object-cover"
+        />
+      )}
+      <div className="p-4">
+        <h3 className="font-medium text-lg">{product.name}</h3>
+        <p className="text-gray-600 text-sm mb-2">{product.description}</p>
+        <div className="flex justify-between items-center">
+          <span className="font-bold">${product.price}</span>
+          <button
+            onClick={addToCart}
+            className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition-colors"
           >
-            Añadir
+            Añadir al carrito
           </button>
         </div>
       </div>
     </div>
   );
-}
+};
 
 export default ProductCard;

@@ -1,15 +1,10 @@
-// src/front/pages/Productos.jsx
-
 import React, { useState } from 'react';
-import { useCart } from '../context/CartContext.jsx';
 
 export function Productos() {
-  const { addItem } = useCart();
   const [selectedBrand, setSelectedBrand] = useState('all');
   const [priceRange, setPriceRange] = useState(300);
   const [sortBy, setSortBy] = useState('popular');
 
-  // Datos de zapatillas famosas
   const zapatillas = [
     {
       id: 1,
@@ -18,7 +13,7 @@ export function Productos() {
       price: 189.99,
       rating: 4.8,
       reviews: 324,
-      image: "https://via.placeholder.com/300",
+      image: "src/front/img/Jordan-1.webp",
       colors: ["Rojo", "Negro", "Blanco"],
       isNew: true
     },
@@ -29,7 +24,7 @@ export function Productos() {
       price: 89.99,
       rating: 4.6,
       reviews: 512,
-      image: "https://via.placeholder.com/300",
+      image: "src/front/img/adidas-superstar.webp",
       colors: ["Blanco", "Negro", "Azul"]
     },
     {
@@ -39,7 +34,7 @@ export function Productos() {
       price: 69.99,
       rating: 4.5,
       reviews: 478,
-      image: "https://via.placeholder.com/300",
+      image: "src/front/img/converseallstar.webp",
       colors: ["Negro", "Blanco", "Rojo"]
     },
     {
@@ -49,7 +44,7 @@ export function Productos() {
       price: 109.99,
       rating: 4.7,
       reviews: 389,
-      image: "https://via.placeholder.com/300",
+      image: "src/front/img/Nike-Air-Force-One.webp",
       colors: ["Blanco", "Negro", "Gris"],
       isNew: true
     },
@@ -291,21 +286,6 @@ export function Productos() {
           <p>Intenta cambiar los filtros para ver más resultados.</p>
         </div>
       )}
-      
-      {/* Paginación */}
-      <nav className="mt-5">
-        <ul className="pagination justify-content-center">
-          <li className="page-item disabled">
-            <a className="page-link" href="#" tabIndex="-1" aria-disabled="true">Anterior</a>
-          </li>
-          <li className="page-item active"><a className="page-link" href="#">1</a></li>
-          <li className="page-item"><a className="page-link" href="#">2</a></li>
-          <li className="page-item"><a className="page-link" href="#">3</a></li>
-          <li className="page-item">
-            <a className="page-link" href="#">Siguiente</a>
-          </li>
-        </ul>
-      </nav>
     </div>
   );
 }

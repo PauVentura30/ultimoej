@@ -1,9 +1,4 @@
-import { useCart } from '../context/CartContext';
-import { useCart } from '../context/CartContext.jsx';
-
 export function FeaturedProducts() {
-  const { addItem } = useCart();
-  
   const products = [
     {
       id: 1,

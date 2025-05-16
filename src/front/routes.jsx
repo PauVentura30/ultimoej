@@ -12,12 +12,11 @@ import { Demo } from "./pages/Demo";
 import { Login } from "./pages/Login"
 import { Private } from "./pages/Private"
 import { Register } from "./pages/Register"
-import { CartProvider } from './context/CartContext.jsx';
 import { Productos } from './pages/Productos.jsx';
 import { Categorias } from './pages/Categorias.jsx';
 import { Ofertas } from './pages/Ofertas.jsx';
 import { Contacto } from './pages/Contacto.jsx';
-import { Cesta } from './pages/Cesta.jsx';
+import { ShoppingCart } from './components/ShoppingCart.jsx';
 
 export const router = createBrowserRouter(
     createRoutesFromElements(
@@ -32,7 +31,7 @@ export const router = createBrowserRouter(
         <Route path="/categorias" element={<Categorias />} />
         <Route path="/ofertas" element={<Ofertas />} />
         <Route path="/contacto" element={<Contacto />} />
-        <Route path="/cesta" element={<Cesta />} />
+        <Route path="/cesta" element={<ShoppingCart />} />
       </Route>
     )
 );

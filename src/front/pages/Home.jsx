@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Navbar } from '../components/Navbar';
+import Footer from '../components/Footer';
 
 // Banner principal
 const HeroBanner = () => (
@@ -68,38 +69,38 @@ const FeaturedProducts = () => {
   const products = [
     {
       id: 1,
-      name: "Auriculares Bluetooth Premium",
+      name: "Adidas Superstar",
       price: 89.99,
       rating: 4.8,
       reviews: 124,
-      image: "https://via.placeholder.com/300",
+      image: "src/front/img/adidas-superstar.webp",
       badge: "Nuevo"
     },
     {
       id: 2,
-      name: "Smartwatch Serie 5",
-      price: 199.99,
+      name: "Nike Air Jordan 1",
+      price: 189.99,
       oldPrice: 249.99,
       rating: 4.5,
       reviews: 86,
-      image: "https://via.placeholder.com/300",
+      image: "src/front/img/Jordan-1.webp",
       badge: "Oferta"
     },
     {
       id: 3,
-      name: "Cámara Instantánea",
+      name: "Converse Chuck Taylor All Star",
       price: 69.99,
       rating: 4.2,
       reviews: 52,
-      image: "https://via.placeholder.com/300"
+      image: "src/front/img/converseallstar.webp"
     },
     {
       id: 4,
-      name: "Altavoz Inteligente",
-      price: 129.99,
+      name: "Nike Air Force 1",
+      price: 109.99,
       rating: 4.7,
       reviews: 94,
-      image: "https://via.placeholder.com/300",
+      image: "src/front/img/Nike-Air-Force-One.webp",
       badge: "Popular"
     }
   ];
@@ -171,185 +172,6 @@ const FeaturedProducts = () => {
   );
 };
 
-// Banner promocional
-const PromoBanner = () => (
-  <div className="bg-dark text-white py-5">
-    <div className="container">
-      <div className="row align-items-center">
-        <div className="col-lg-6 mb-4 mb-lg-0">
-          <h2 className="fw-bold mb-3">Suscríbete a nuestro newsletter</h2>
-          <p className="mb-4">Recibe noticias sobre nuevos productos y ofertas exclusivas.</p>
-          <div className="row g-2">
-            <div className="col-sm-8">
-              <input 
-                type="email" 
-                className="form-control form-control-lg" 
-                placeholder="Tu correo electrónico" 
-              />
-            </div>
-            <div className="col-sm-4">
-              <button className="btn btn-primary btn-lg w-100">
-                Suscribirse
-              </button>
-            </div>
-          </div>
-        </div>
-        <div className="col-lg-6">
-          <img 
-            src="https://via.placeholder.com/500x300" 
-            className="img-fluid rounded" 
-            alt="Newsletter" 
-          />
-        </div>
-      </div>
-    </div>
-  </div>
-);
-
-// Testimonios
-const Testimonials = () => {
-  const testimonials = [
-    {
-      id: 1,
-      name: "María García",
-      role: "Cliente habitual",
-      content: "Excelente servicio y productos de alta calidad. Lo recomiendo totalmente.",
-      avatar: "https://via.placeholder.com/100"
-    },
-    {
-      id: 2,
-      name: "Juan Pérez",
-      role: "Comprador verificado",
-      content: "Envío rápido y atención al cliente excepcional. Volveré a comprar sin duda.",
-      avatar: "https://via.placeholder.com/100"
-    },
-    {
-      id: 3,
-      name: "Ana Martínez",
-      role: "Cliente nuevo",
-      content: "Mi primera compra y quedé encantada. Los productos superaron mis expectativas.",
-      avatar: "https://via.placeholder.com/100"
-    }
-  ];
-  
-  return (
-    <section className="py-5 bg-light">
-      <div className="container">
-        <h2 className="text-center fw-bold mb-2">Lo que dicen nuestros clientes</h2>
-        <p className="text-center text-muted mb-4">Más de 10,000 clientes satisfechos</p>
-        
-        <div className="row g-4">
-          {testimonials.map(testimonial => (
-            <div key={testimonial.id} className="col-md-4">
-              <div className="card h-100 p-4 shadow-sm">
-                <div className="d-flex align-items-center mb-3">
-                  <img 
-                    src={testimonial.avatar} 
-                    className="rounded-circle me-3" 
-                    alt={testimonial.name}
-                    width="50" 
-                  />
-                  <div>
-                    <h6 className="mb-0">{testimonial.name}</h6>
-                    <small className="text-muted">{testimonial.role}</small>
-                  </div>
-                </div>
-                <p className="card-text">{testimonial.content}</p>
-                <div className="text-warning mt-2">
-                  <i className="bi bi-star-fill"></i>
-                  <i className="bi bi-star-fill"></i>
-                  <i className="bi bi-star-fill"></i>
-                  <i className="bi bi-star-fill"></i>
-                  <i className="bi bi-star-fill"></i>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-};
-
-// Footer
-const Footer = () => (
-  <footer className="bg-dark text-white pt-5 pb-3">
-    <div className="container">
-      <div className="row g-4">
-        <div className="col-lg-3 col-md-6">
-          <h5 className="mb-3">BambasShop</h5>
-          <p className="mb-3">Tu tienda online de confianza para todos tus productos favoritos.</p>
-          <div className="d-flex gap-2">
-            <a href="#" className="text-white">
-              <i className="bi bi-facebook fs-5"></i>
-            </a>
-            <a href="#" className="text-white">
-              <i className="bi bi-twitter fs-5"></i>
-            </a>
-            <a href="#" className="text-white">
-              <i className="bi bi-instagram fs-5"></i>
-            </a>
-          </div>
-        </div>
-        
-        <div className="col-lg-3 col-md-6">
-          <h5 className="mb-3">Navegación</h5>
-          <ul className="list-unstyled">
-            <li className="mb-2"><a href="#" className="text-white-50 text-decoration-none">Inicio</a></li>
-            <li className="mb-2"><a href="#" className="text-white-50 text-decoration-none">Productos</a></li>
-            <li className="mb-2"><a href="#" className="text-white-50 text-decoration-none">Categorías</a></li>
-            <li className="mb-2"><a href="#" className="text-white-50 text-decoration-none">Ofertas</a></li>
-            <li className="mb-2"><a href="#" className="text-white-50 text-decoration-none">Blog</a></li>
-          </ul>
-        </div>
-        
-        <div className="col-lg-3 col-md-6">
-          <h5 className="mb-3">Información</h5>
-          <ul className="list-unstyled">
-            <li className="mb-2"><a href="#" className="text-white-50 text-decoration-none">Sobre nosotros</a></li>
-            <li className="mb-2"><a href="#" className="text-white-50 text-decoration-none">Contacto</a></li>
-            <li className="mb-2"><a href="#" className="text-white-50 text-decoration-none">Términos y condiciones</a></li>
-            <li className="mb-2"><a href="#" className="text-white-50 text-decoration-none">Política de privacidad</a></li>
-            <li className="mb-2"><a href="#" className="text-white-50 text-decoration-none">Devoluciones</a></li>
-          </ul>
-        </div>
-        
-        <div className="col-lg-3 col-md-6">
-          <h5 className="mb-3">Contacto</h5>
-          <ul className="list-unstyled">
-            <li className="mb-2 d-flex align-items-center">
-              <i className="bi bi-geo-alt me-2"></i>
-              Calle Principal 123, Ciudad
-            </li>
-            <li className="mb-2 d-flex align-items-center">
-              <i className="bi bi-envelope me-2"></i>
-              info@bambasshop.com
-            </li>
-            <li className="mb-2 d-flex align-items-center">
-              <i className="bi bi-telephone me-2"></i>
-              +1 234 567 890
-            </li>
-          </ul>
-        </div>
-      </div>
-      
-      <hr className="my-4"/>
-      
-      <div className="row align-items-center">
-        <div className="col-md-6 mb-3 mb-md-0">
-          <p className="mb-0">&copy; 2025 BambasShop. Todos los derechos reservados.</p>
-        </div>
-        <div className="col-md-6 text-md-end">
-          <img src="https://via.placeholder.com/40x25" alt="Visa" className="me-2 mb-2 payment-icon" />
-          <img src="https://via.placeholder.com/40x25" alt="Mastercard" className="me-2 mb-2 payment-icon" />
-          <img src="https://via.placeholder.com/40x25" alt="PayPal" className="me-2 mb-2 payment-icon" />
-          <img src="https://via.placeholder.com/40x25" alt="Apple Pay" className="mb-2 payment-icon" />
-        </div>
-      </div>
-    </div>
-  </footer>
-);
-
 // Página completa
 export function Home() {
   return (
@@ -388,9 +210,6 @@ export function Home() {
       <HeroBanner />
       <Categories />
       <FeaturedProducts />
-      <PromoBanner />
-      <Testimonials />
-      <Footer />
       
       {/* Script de Bootstrap */}
       <script

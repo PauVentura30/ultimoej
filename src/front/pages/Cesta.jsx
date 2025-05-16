@@ -1,5 +1,4 @@
-// src/pages/Cesta.jsx
-import { useCart } from '../context/CartContext.jsx';
+
 import { Link } from 'react-router-dom';
 
 export function Cesta() {
