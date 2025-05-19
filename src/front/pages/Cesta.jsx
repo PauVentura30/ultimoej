@@ -1,25 +1,46 @@
-
-import { Link } from 'react-router-dom';
+import React from 'react';
+import useGlobalReducer from '../hooks/useGlobalReducer';
 
 export function Cesta() {
-  const { cart, removeItem, updateQuantity, clearCart } = useCart();
+  const { store, dispatch } = useGlobalReducer();
+
+  console.log("🛒 CESTA - Store completo:", store);
+  console.log("🛒 CESTA - Carrito actual:", store.cart);
+  console.log("🛒 CESTA - Longitud del carrito:", store.cart ? store.cart.length : 'undefined');
+
+  // Funciones del carrito
+  const removeItem = (id) => {
+    dispatch({ type: "remove_from_cart", payload: id });
+  };
+
+  const updateQuantity = (id, quantity) => {
+    if (quantity <= 0) {
+      removeItem(id);
+    } else {
+      dispatch({ type: "update_cart_quantity", payload: { id, quantity } });
+    }
+  };
+
+  const clearCart = () => {
+    dispatch({ type: "clear_cart" });
+  };
 
   // Calcular subtotal (sin impuestos ni envío)
-  const subtotal = cart.totalPrice;
+  const subtotal = store.cart ? store.cart.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0) : 0;
   const impuestos = subtotal * 0.21; // 21% de IVA
   const envio = subtotal > 50 ? 0 : 4.99; // Envío gratis para pedidos > 50€
   const total = subtotal + impuestos + envio;
 
-  if (cart.items.length === 0) {
+  if (!store.cart || store.cart.length === 0) {
     return (
       <div className="container py-5">
         <div className="text-center py-5">
           <i className="bi bi-cart-x fs-1 text-muted mb-3"></i>
           <h2>Tu carrito está vacío</h2>
           <p className="lead text-muted mb-4">Parece que no has añadido ningún producto a tu carrito todavía.</p>
-          <Link to="/productos" className="btn btn-primary">
+          <a href="/productos" className="btn btn-dark">
             Ver productos
-          </Link>
+          </a>
         </div>
       </div>
     );
@@ -46,7 +67,7 @@ export function Cesta() {
                     </tr>
                   </thead>
                   <tbody>
-                    {cart.items.map((item) => (
+                    {store.cart.map((item) => (
                       <tr key={item.id}>
                         <td className="ps-0">
                           <div className="d-flex align-items-center">
@@ -62,7 +83,7 @@ export function Cesta() {
                                 <span className={`badge ${
                                   item.badge === 'Oferta' ? 'bg-danger' :
                                   item.badge === 'Nuevo' ? 'bg-success' :
-                                  'bg-primary'
+                                  'bg-dark'
                                 } me-2`}>
                                   {item.badge}
                                 </span>
@@ -75,27 +96,27 @@ export function Cesta() {
                             <button 
                               className="btn btn-outline-secondary" 
                               type="button"
-                              onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                              onClick={() => updateQuantity(item.id, (item.quantity || 1) - 1)}
                             >
                               <i className="bi bi-dash"></i>
                             </button>
                             <input 
                               type="text" 
                               className="form-control text-center" 
-                              value={item.quantity}
+                              value={item.quantity || 1}
                               readOnly
                             />
                             <button 
                               className="btn btn-outline-secondary" 
                               type="button"
-                              onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                              onClick={() => updateQuantity(item.id, (item.quantity || 1) + 1)}
                             >
                               <i className="bi bi-plus"></i>
                             </button>
                           </div>
                         </td>
                         <td className="text-center">${item.price.toFixed(2)}</td>
-                        <td className="text-center fw-bold">${(item.price * item.quantity).toFixed(2)}</td>
+                        <td className="text-center fw-bold">${(item.price * (item.quantity || 1)).toFixed(2)}</td>
                         <td className="text-end pe-0">
                           <button 
                             className="btn btn-sm btn-link text-danger"
@@ -114,10 +135,10 @@ export function Cesta() {
           
           {/* Botones de acción */}
           <div className="d-flex justify-content-between mb-4">
-            <Link to="/productos" className="btn btn-outline-primary">
+            <a href="/productos" className="btn btn-outline-dark">
               <i className="bi bi-arrow-left me-2"></i>
               Seguir comprando
-            </Link>
+            </a>
             <button 
               className="btn btn-outline-danger"
               onClick={clearCart}
@@ -150,9 +171,9 @@ export function Cesta() {
               <hr className="my-3" />
               <div className="d-flex justify-content-between mb-3">
                 <span className="fw-bold">Total</span>
-                <span className="fw-bold fs-5 text-primary">${total.toFixed(2)}</span>
+                <span className="fw-bold fs-5 text-dark">${total.toFixed(2)}</span>
               </div>
-              <button className="btn btn-primary w-100 mt-2">
+              <button className="btn btn-dark w-100 mt-2">
                 Realizar pedido
               </button>
             </div>
@@ -168,7 +189,7 @@ export function Cesta() {
                   className="form-control" 
                   placeholder="Introduce tu código" 
                 />
-                <button className="btn btn-outline-primary" type="button">Aplicar</button>
+                <button className="btn btn-outline-dark" type="button">Aplicar</button>
               </div>
             </div>
           </div>

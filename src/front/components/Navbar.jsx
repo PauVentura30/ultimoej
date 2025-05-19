@@ -1,16 +1,23 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import useGlobalReducer from '../hooks/useGlobalReducer';
 
 // Barra de navegación
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { store } = useGlobalReducer();
+  
+  // Calcular total de items en el carrito
+  const cartItemsCount = store.cart ? store.cart.reduce((sum, item) => sum + (item.quantity || 1), 0) : 0;
+  
+  // Verificar si el usuario está logueado
+  const isLoggedIn = store.token || localStorage.getItem('auth_token');
   
   return (
     <>
       {/* Navbar principal */}
       <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
         <div className="container">
-          <Link className="navbar-brand fw-bold text-primary" to="/">BambasShop</Link>
+          <a className="navbar-brand fw-bold text-dark" href="/">BambasShop</a>
           
           <button 
             className="navbar-toggler" 
@@ -23,23 +30,21 @@ export function Navbar() {
           <div className={`collapse navbar-collapse ${isMenuOpen ? 'show' : ''}`}>
             <ul className="navbar-nav me-auto mb-2 mb-lg-0">
               <li className="nav-item">
-                <Link className="nav-link active" to="/">Inicio</Link>
+                <a className="nav-link active" href="/">Inicio</a>
               </li>
               <li className="nav-item">
-                <Link className="nav-link" to="/productos">Productos</Link>
+                <a className="nav-link" href="/productos">Productos</a>
+              </li>
+              
+              <li className="nav-item">
+                <a className="nav-link" href="/ofertas">Ofertas</a>
               </li>
               <li className="nav-item">
-                <Link className="nav-link" to="/categorias">Categorías</Link>
-              </li>
-              <li className="nav-item">
-                <Link className="nav-link" to="/ofertas">Ofertas</Link>
-              </li>
-              <li className="nav-item">
-                <Link className="nav-link" to="/contacto">Contacto</Link>
+                <a className="nav-link" href="/contacto">Contacto</a>
               </li>
             </ul>
             
-            <form className="d-flex me-3">
+            <div className="d-flex me-3">
               <div className="input-group">
                 <input 
                   type="text" 
@@ -50,18 +55,33 @@ export function Navbar() {
                   <i className="bi bi-search"></i>
                 </button>
               </div>
-            </form>
+            </div>
             
             <div className="d-flex align-items-center">
               {/* Icono del carrito con contador dinámico */}
-              <Link to="/cesta" className="text-dark position-relative me-3">
+              <a href="/cesta" className="text-dark position-relative me-3">
                 <i className="bi bi-cart3 fs-5"></i>
-                  <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary">
+                {cartItemsCount > 0 && (
+                  <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark">
+                    {cartItemsCount}
                   </span>
-                
-              </Link>
-              <a href="./register" className="text-dark">
-                <i className="bi bi-person fs-5"></i>
+                )}
+              </a>
+              
+              {/* Icono de usuario con navegación condicional */}
+              <a 
+                href={isLoggedIn ? "/private" : "/register"} 
+                className="text-dark d-flex align-items-center text-decoration-none"
+                title={isLoggedIn ? "Mi cuenta" : "Registrarse"}
+              >
+                <i className="bi bi-person fs-5 me-1"></i>
+                {isLoggedIn ? (
+                  <span className="d-none d-sm-inline small">
+                    {store.user ? store.user.split('@')[0] : "Mi cuenta"}
+                  </span>
+                ) : (
+                  <span className="d-none d-sm-inline small">Entrar</span>
+                )}
               </a>
             </div>
           </div>

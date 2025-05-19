@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import useGlobalReducer from '../hooks/useGlobalReducer';
 
 export function Productos() {
   const [selectedBrand, setSelectedBrand] = useState('all');
   const [priceRange, setPriceRange] = useState(300);
   const [sortBy, setSortBy] = useState('popular');
+  const { dispatch } = useGlobalReducer();
 
   const zapatillas = [
     {
@@ -55,7 +57,7 @@ export function Productos() {
       price: 79.99,
       rating: 4.4,
       reviews: 421,
-      image: "https://via.placeholder.com/300",
+      image: "src/front/img/vans-old-skool.webp",
       colors: ["Negro", "Blanco", "Azul"]
     },
     {
@@ -95,7 +97,7 @@ export function Productos() {
       price: 139.99,
       rating: 4.6,
       reviews: 356,
-      image: "https://via.placeholder.com/300",
+      image: "src/front/img/WMNS+AIR+MAX+90.webp",
       colors: ["Negro", "Blanco", "Gris"]
     },
     {
@@ -105,7 +107,7 @@ export function Productos() {
       price: 249.99,
       rating: 4.9,
       reviews: 467,
-      image: "https://via.placeholder.com/300",
+      image: "src/front/img/yeezy-boost-350.webp",
       colors: ["Gris", "Negro", "Beige"],
       isNew: true
     },
@@ -154,7 +156,7 @@ export function Productos() {
 
   // Función para manejar la adición al carrito
   const handleAddToCart = (product) => {
-    addItem(product);
+    dispatch({ type: "add_to_cart", payload: product });
     alert(`${product.name} añadido al carrito`);
   };
 
@@ -220,7 +222,7 @@ export function Productos() {
         </div>
         
         <div className="col-md-3">
-          <div className="card h-100 bg-primary text-white border-0">
+          <div className="card h-100 bg-dark text-white border-0">
             <div className="card-body d-flex flex-column justify-content-center">
               <h5 className="card-title">Resultados</h5>
               <p className="card-text mb-0">Mostrando {sortedProducts.length} de {zapatillas.length} productos</p>
@@ -229,25 +231,75 @@ export function Productos() {
         </div>
       </div>
       
+      {/* Estilos personalizados para uniformidad en las tarjetas de productos */}
+      <style>
+        {`
+          .product-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+          }
+          .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+          }
+          .product-image-container {
+            height: 250px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f8f9fa;
+            border-radius: 4px 4px 0 0;
+          }
+          .product-image {
+            max-height: 100%;
+            max-width: 100%;
+            object-fit: contain;
+          }
+          .product-body {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+          }
+          .product-footer {
+            margin-top: auto;
+          }
+          .badge-new {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 10;
+          }
+        `}
+      </style>
+      
       {/* Lista de productos */}
       <div className="row g-4">
         {sortedProducts.map(product => (
-          <div key={product.id} className="col-md-6 col-lg-4 col-xl-3">
-            <div className="card h-100 border-0 shadow-sm hover-shadow">
+          <div key={product.id} className="col-md-6 col-lg-4 col-xl-3 mb-4">
+            <div className="card product-card border-0 shadow-sm">
               <div className="position-relative">
-                <img src={product.image} className="card-img-top" alt={product.name} />
                 {product.isNew && (
-                  <span className="position-absolute top-0 end-0 m-2 badge bg-success">
+                  <span className="badge bg-success badge-new">
                     Nuevo
                   </span>
                 )}
+                <div className="product-image-container">
+                  <img 
+                    src={product.image} 
+                    className="product-image" 
+                    alt={product.name}
+                  />
+                </div>
               </div>
               
-              <div className="card-body">
-                <h5 className="card-title">{product.name}</h5>
-                <p className="card-text text-muted small mb-0">{product.brand}</p>
+              <div className="card-body product-body">
+                <h5 className="card-title text-truncate" title={product.name}>{product.name}</h5>
+                <p className="card-text text-muted small mb-2">{product.brand}</p>
                 
-                <div className="mb-2 mt-2 d-flex align-items-center">
+                <div className="mb-2 d-flex align-items-center">
                   <div className="text-warning me-1">
                     {[...Array(5)].map((_, i) => (
                       <i 
@@ -259,18 +311,18 @@ export function Productos() {
                   <small className="text-muted">({product.reviews})</small>
                 </div>
                 
-                <div className="d-flex justify-content-between align-items-center">
-                  <span className="fs-5 fw-bold">${product.price}</span>
+                <div className="mt-2 small text-muted">
+                  Colores: {product.colors.join(", ")}
+                </div>
+                
+                <div className="d-flex justify-content-between align-items-center mt-3 product-footer">
+                  <span className="fs-5 fw-bold">${product.price.toFixed(2)}</span>
                   <button 
-                    className="btn btn-primary"
+                    className="btn btn-dark"
                     onClick={() => handleAddToCart(product)}
                   >
                     <i className="bi bi-cart-plus me-1"></i> Añadir
                   </button>
-                </div>
-                
-                <div className="mt-3">
-                  <small className="text-muted">Colores: {product.colors.join(", ")}</small>
                 </div>
               </div>
             </div>
