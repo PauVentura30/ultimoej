@@ -5,6 +5,7 @@ import os
 from flask import Flask, request, jsonify, url_for, send_from_directory
 from flask_migrate import Migrate
 from flask_swagger import swagger
+from flask_cors import CORS  # AÑADIR ESTA LÍNEA
 from api.utils import APIException, generate_sitemap
 from api.models import db
 from api.routes import api
@@ -21,8 +22,15 @@ static_file_dir = os.path.join(os.path.dirname(
 app = Flask(__name__)
 app.url_map.strict_slashes = False
 
-# database condiguration
+# CONFIGURAR CORS - AÑADIR ESTAS LÍNEAS
+CORS(app, origins=[
+    "https://ubiquitous-space-doodle-4jwj6wq5rw9q26jp-3000.app.github.dev",
+    "https://ubiquitous-space-doodle-4jwj6wq5rw9q26jp-3001.app.github.dev",
+    "http://localhost:3000",
+    "http://localhost:3001"
+])
 
+# database condiguration
 db_url = os.getenv("DATABASE_URL")
 if db_url is not None:
     app.config['SQLALCHEMY_DATABASE_URI'] = db_url.replace(
@@ -35,6 +43,7 @@ MIGRATE = Migrate(app, db, compare_type=True)
 db.init_app(app)
 
 # inicializar el token
+app.config["JWT_SECRET_KEY"] = os.getenv("FLASK_APP_KEY", "super-secret")  # AÑADIR ESTA LÍNEA
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=2)
 jwt = JWTManager(app)
 bcrypt = Bcrypt(app)
@@ -49,15 +58,11 @@ setup_commands(app)
 app.register_blueprint(api, url_prefix='/api')
 
 # Handle/serialize errors like a JSON object
-
-
 @app.errorhandler(APIException)
 def handle_invalid_usage(error):
     return jsonify(error.to_dict()), error.status_code
 
 # generate sitemap with all your endpoints
-
-
 @app.route('/')
 def sitemap():
     if ENV == "development":
@@ -72,7 +77,6 @@ def serve_any_other_file(path):
     response = send_from_directory(static_file_dir, path)
     response.cache_control.max_age = 0  # avoid cache memory
     return response
-
 
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':

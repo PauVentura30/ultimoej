@@ -1,5 +1,6 @@
 import React from 'react';
 import useGlobalReducer from '../hooks/useGlobalReducer';
+import Navbar from '../components/Navbar';
 
 // Banner principal
 const HeroBanner = () => (

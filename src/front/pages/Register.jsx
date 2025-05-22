@@ -48,6 +48,27 @@ export const Register = () => {
             const data = await response.json()
             console.log('Usuario registrado:', data)
             
+            // Guardar TODOS los datos del usuario en localStorage
+            const userData = {
+                name: formData.name,
+                lastName: formData.lastName,
+                email: formData.email,
+                phone: formData.phone,
+                birthDate: formData.birthDate,
+                avatar: null // Inicialmente sin avatar
+            };
+            
+            console.log('Guardando datos completos en localStorage:', userData);
+            localStorage.setItem('user_data', JSON.stringify(userData));
+            
+            // También actualizar el store inmediatamente
+            dispatch({ 
+                type: "signup_access", 
+                payload: { user: userData }
+            });
+            
+            console.log('Datos guardados exitosamente');
+            
             // Redirigir directamente al login sin mensaje
             navigate("/login")
             

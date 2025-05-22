@@ -1,39 +1,129 @@
 import React, { useEffect, useState } from "react";
 import useGlobalReducer from "../hooks/useGlobalReducer";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
 
 export const Private = () => {
     const { store, dispatch } = useGlobalReducer();
     const navigate = useNavigate();
+    const { isLoggedIn, user, logout } = useAuth();
     const [activeTab, setActiveTab] = useState("perfil");
+    const [avatar, setAvatar] = useState(user?.avatar || null);
+    const [phoneNumber, setPhoneNumber] = useState(user?.phone || "");
+    const [isEditing, setIsEditing] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
     
-    // Solo mostrar pedidos si el usuario realmente tiene (por ahora vacío hasta que implemente backend)
+    // Solo mostrar pedidos si el usuario realmente tiene
     const [orders] = useState([]);
 
     useEffect(() => {
-        console.log('Token:', store.token);
-        console.log('User:', store.user);
-        
-        // Si no hay token en el store, verificar localStorage
-        const savedToken = localStorage.getItem('auth_token');
-        if (!store.token && savedToken) {
-            // Cargar token desde localStorage al store
-            dispatch({ 
-                type: "load_from_storage", 
-                payload: { token: savedToken }
-            });
-        } else if (!store.token && !savedToken) {
-            // Si no hay token ni en store ni en localStorage, redirigir
+        if (!isLoggedIn) {
             navigate("/login");
-        }   
-    }, [store.token, navigate, dispatch]);
+        }
+        // Cargar avatar y teléfono cuando cambie el usuario
+        setAvatar(user?.avatar || null);
+        setPhoneNumber(user?.phone || "");
+    }, [isLoggedIn, navigate, user]);
 
     const handleLogout = () => {
-        // Limpiar localStorage
-        localStorage.removeItem('auth_token');
-        // Limpiar el store
-        dispatch({ type: "logout" });
+        logout();
         navigate("/login");
+    };
+
+    // Función para manejar la subida de avatar
+    const handleAvatarChange = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            // Verificar que sea una imagen
+            if (!file.type.startsWith('image/')) {
+                alert('Por favor, selecciona un archivo de imagen válido.');
+                return;
+            }
+            
+            // Verificar tamaño (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('La imagen es demasiado grande. El tamaño máximo es 5MB.');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const newAvatar = e.target.result;
+                setAvatar(newAvatar);
+                
+                // Guardar inmediatamente el avatar
+                saveAvatar(newAvatar);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    // Función para guardar el avatar
+    const saveAvatar = async (avatarData) => {
+        try {
+            const updatedUser = { ...user, avatar: avatarData };
+            
+            // Guardar en localStorage
+            localStorage.setItem('user_data', JSON.stringify(updatedUser));
+            
+            // Actualizar el store
+            dispatch({
+                type: "login", // Reutilizamos la acción login para actualizar datos
+                payload: {
+                    token: store.token,
+                    user: updatedUser
+                }
+            });
+            
+            console.log('Avatar guardado exitosamente');
+        } catch (error) {
+            console.error('Error guardando avatar:', error);
+            alert('Error al guardar la imagen. Inténtalo de nuevo.');
+        }
+    };
+
+    // Función para guardar cambios (teléfono)
+    const handleSaveChanges = async () => {
+        setIsSaving(true);
+        
+        try {
+            const updatedUser = { ...user, phone: phoneNumber };
+            
+            // Guardar en localStorage
+            localStorage.setItem('user_data', JSON.stringify(updatedUser));
+            
+            // Actualizar el store
+            dispatch({
+                type: "login",
+                payload: {
+                    token: store.token,
+                    user: updatedUser
+                }
+            });
+            
+            setIsEditing(false);
+            alert('¡Cambios guardados exitosamente!');
+        } catch (error) {
+            console.error('Error guardando cambios:', error);
+            alert('Error al guardar los cambios. Inténtalo de nuevo.');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    // Función auxiliar para obtener el nombre del usuario
+    const getUserName = () => {
+        if (user?.name) return user.name;
+        if (user?.email) return user.email.split('@')[0];
+        if (typeof user === 'string') return user.split('@')[0];
+        return "Usuario";
+    };
+
+    // Función auxiliar para obtener el email del usuario
+    const getUserEmail = () => {
+        if (user?.email) return user.email;
+        if (typeof user === 'string') return user;
+        return "usuario@bambasshop.com";
     };
 
     const renderContent = () => {
@@ -41,63 +131,125 @@ export const Private = () => {
             case "perfil":
                 return (
                     <div className="card border-0 shadow-sm">
-                        <div className="card-body p-4">
+                        <div className="card-body p-5">
                             <div className="row">
-                                <div className="col-md-4 text-center mb-4">
+                                <div className="col-md-4 text-center mb-5">
                                     <div className="position-relative d-inline-block">
                                         <img 
-                                            src="/api/placeholder/120/120" 
+                                            src={avatar || "/api/placeholder/140/140"} 
                                             alt="Avatar" 
                                             className="rounded-circle border border-3 border-light shadow"
-                                            style={{ width: "120px", height: "120px", objectFit: "cover" }}
+                                            style={{ width: "140px", height: "140px", objectFit: "cover" }}
                                         />
-                                        <button className="btn btn-dark btn-sm rounded-circle position-absolute bottom-0 end-0">
+                                        <input
+                                            type="file"
+                                            id="avatar-upload"
+                                            accept="image/*"
+                                            onChange={handleAvatarChange}
+                                            style={{ display: 'none' }}
+                                        />
+                                        <label
+                                            htmlFor="avatar-upload"
+                                            className="btn btn-dark btn-sm rounded-circle position-absolute bottom-0 end-0 p-2"
+                                            style={{ cursor: 'pointer' }}
+                                            title="Cambiar foto de perfil"
+                                        >
                                             <i className="bi bi-camera"></i>
-                                        </button>
+                                        </label>
                                     </div>
+                                    <small className="text-muted d-block mt-2">
+                                        Haz clic en <i className="bi bi-camera"></i> para cambiar tu foto
+                                    </small>
                                 </div>
                                 <div className="col-md-8">
-                                    <h4 className="fw-bold mb-3">Información Personal</h4>
-                                    <p className="text-muted mb-4">Gestiona tu información personal y preferencias de cuenta.</p>
+                                    <h3 className="fw-bold mb-4">Información Personal</h3>
+                                    <p className="text-muted mb-5 fs-6">Gestiona tu información personal y preferencias de cuenta.</p>
                                     
                                     <form>
-                                        <div className="row mb-3">
+                                        <div className="row mb-4">
                                             <div className="col-md-6">
-                                                <label className="form-label small fw-bold">Nombre</label>
+                                                <label className="form-label fw-bold fs-6">Nombre</label>
                                                 <input 
                                                     type="text" 
-                                                    className="form-control" 
-                                                    value={store.user || "Usuario"}
+                                                    className="form-control form-control-lg" 
+                                                    value={user?.name || getUserName()}
                                                     readOnly
                                                 />
                                             </div>
                                             <div className="col-md-6">
-                                                <label className="form-label small fw-bold">Apellidos</label>
-                                                <input type="text" className="form-control" placeholder="Tus apellidos" />
+                                                <label className="form-label fw-bold fs-6">Apellidos</label>
+                                                <input 
+                                                    type="text" 
+                                                    className="form-control form-control-lg" 
+                                                    value={user?.lastName || ""}
+                                                    placeholder="Tus apellidos"
+                                                    readOnly
+                                                />
                                             </div>
                                         </div>
-                                        <div className="mb-3">
-                                            <label className="form-label small fw-bold">Email</label>
+                                        <div className="mb-4">
+                                            <label className="form-label fw-bold fs-6">Email</label>
                                             <input 
                                                 type="email" 
-                                                className="form-control" 
-                                                value={store.user || "usuario@bambasshop.com"}
+                                                className="form-control form-control-lg" 
+                                                value={getUserEmail()}
                                                 readOnly
                                             />
                                         </div>
-                                        <div className="row mb-3">
+                                        <div className="row mb-4">
                                             <div className="col-md-6">
-                                                <label className="form-label small fw-bold">Teléfono</label>
-                                                <input type="tel" className="form-control" placeholder="+34 123 456 789" />
+                                                <label className="form-label fw-bold fs-6">Teléfono</label>
+                                                <div className="input-group">
+                                                    <input 
+                                                        type="tel" 
+                                                        className="form-control form-control-lg" 
+                                                        value={phoneNumber}
+                                                        onChange={(e) => setPhoneNumber(e.target.value)}
+                                                        placeholder="+34 123 456 789"
+                                                        readOnly={!isEditing}
+                                                        style={{
+                                                            backgroundColor: isEditing ? '#fff' : '#f8f9fa'
+                                                        }}
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn-outline-secondary"
+                                                        onClick={() => setIsEditing(!isEditing)}
+                                                    >
+                                                        <i className={`bi ${isEditing ? 'bi-x' : 'bi-pencil'}`}></i>
+                                                    </button>
+                                                </div>
+                                                {isEditing && (
+                                                    <small className="text-muted">
+                                                        Edita tu número y haz clic en "Guardar cambios"
+                                                    </small>
+                                                )}
                                             </div>
                                             <div className="col-md-6">
-                                                <label className="form-label small fw-bold">Fecha de nacimiento</label>
-                                                <input type="date" className="form-control" />
+                                                <label className="form-label fw-bold fs-6">Fecha de nacimiento</label>
+                                                <input 
+                                                    type="date" 
+                                                    className="form-control form-control-lg" 
+                                                    value={user?.birthDate || ""}
+                                                    readOnly
+                                                />
                                             </div>
                                         </div>
                                         <div className="text-end">
-                                            <button type="button" className="btn btn-dark">
-                                                Guardar cambios
+                                            <button 
+                                                type="button" 
+                                                className="btn btn-dark btn-lg px-5"
+                                                onClick={handleSaveChanges}
+                                                disabled={isSaving || !isEditing}
+                                            >
+                                                {isSaving ? (
+                                                    <>
+                                                        <span className="spinner-border spinner-border-sm me-2"></span>
+                                                        Guardando...
+                                                    </>
+                                                ) : (
+                                                    'Guardar cambios'
+                                                )}
                                             </button>
                                         </div>
                                     </form>
@@ -110,35 +262,35 @@ export const Private = () => {
             case "pedidos":
                 return (
                     <div className="card border-0 shadow-sm">
-                        <div className="card-body p-4">
-                            <h4 className="fw-bold mb-4">Mis Pedidos</h4>
-                            <p className="text-muted mb-4">Revisa el estado de tus pedidos y descargas facturas.</p>
+                        <div className="card-body p-5">
+                            <h3 className="fw-bold mb-4">Mis Pedidos</h3>
+                            <p className="text-muted mb-5 fs-6">Revisa el estado de tus pedidos y descargas facturas.</p>
                             
                             {orders.length === 0 ? (
                                 <div className="text-center py-5">
-                                    <i className="bi bi-bag-x fs-1 text-muted mb-3"></i>
-                                    <h5 className="text-muted">No tienes pedidos todavía</h5>
-                                    <p className="text-muted">¡Empieza a comprar y encuentra tus zapatillas favoritas!</p>
+                                    <i className="bi bi-bag-x display-1 text-muted mb-4"></i>
+                                    <h4 className="text-muted mb-3">No tienes pedidos todavía</h4>
+                                    <p className="text-muted fs-5 mb-4">¡Empieza a comprar y encuentra tus zapatillas favoritas!</p>
                                     <button 
-                                        className="btn btn-dark"
+                                        className="btn btn-dark btn-lg px-5"
                                         onClick={() => navigate('/productos')}
                                     >
                                         Ver productos
                                     </button>
                                 </div>
                             ) : (
-                                <div className="row g-3">
+                                <div className="row g-4">
                                     {orders.map((order, index) => (
                                         <div key={index} className="col-12">
                                             <div className="card border">
-                                                <div className="card-body">
+                                                <div className="card-body p-4">
                                                     <div className="row align-items-center">
                                                         <div className="col-md-3">
-                                                            <h6 className="mb-1 fw-bold">{order.id}</h6>
-                                                            <small className="text-muted">{order.date}</small>
+                                                            <h5 className="mb-2 fw-bold">{order.id}</h5>
+                                                            <span className="text-muted fs-6">{order.date}</span>
                                                         </div>
                                                         <div className="col-md-3">
-                                                            <span className={`badge ${
+                                                            <span className={`badge fs-6 px-3 py-2 ${
                                                                 order.status === 'Entregado' ? 'bg-success' :
                                                                 order.status === 'En tránsito' ? 'bg-warning' :
                                                                 'bg-secondary'
@@ -147,15 +299,15 @@ export const Private = () => {
                                                             </span>
                                                         </div>
                                                         <div className="col-md-3">
-                                                            <h6 className="mb-0 fw-bold">${order.total}</h6>
+                                                            <h5 className="mb-0 fw-bold">${order.total}</h5>
                                                         </div>
                                                         <div className="col-md-3 text-end">
-                                                            <button className="btn btn-outline-dark btn-sm">
+                                                            <button className="btn btn-outline-dark btn-lg">
                                                                 Ver detalles
                                                             </button>
                                                         </div>
                                                     </div>
-                                                    <hr className="my-3" />
+                                                    <hr className="my-4" />
                                                     <div className="row">
                                                         {order.items.map((item, itemIndex) => (
                                                             <div key={itemIndex} className="col-auto">
@@ -163,13 +315,12 @@ export const Private = () => {
                                                                     <img 
                                                                         src={item.image} 
                                                                         alt={item.name}
-                                                                        className="rounded me-2"
-                                                                        style={{ width: "50px", height: "50px", objectFit: "cover" }}
+                                                                        className="rounded me-3"
+                                                                        style={{ width: "70px", height: "70px", objectFit: "cover" }}
                                                                     />
                                                                     <div>
-                                                                        <small className="fw-bold">{item.name}</small>
-                                                                        <br />
-                                                                        <small className="text-muted">Cantidad: {item.quantity}</small>
+                                                                        <h6 className="fw-bold mb-1">{item.name}</h6>
+                                                                        <span className="text-muted fs-6">Cantidad: {item.quantity}</span>
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -188,36 +339,36 @@ export const Private = () => {
             case "carrito":
                 return (
                     <div className="card border-0 shadow-sm">
-                        <div className="card-body p-4">
-                            <h4 className="fw-bold mb-4">Mi Carrito</h4>
+                        <div className="card-body p-5">
+                            <h3 className="fw-bold mb-4">Mi Carrito</h3>
                             {store.cart && store.cart.length > 0 ? (
                                 <>
-                                    <p className="text-muted mb-4">Tienes {store.cart.length} productos en tu carrito.</p>
-                                    <div className="row g-3">
+                                    <p className="text-muted mb-5 fs-6">Tienes {store.cart.length} productos en tu carrito.</p>
+                                    <div className="row g-4">
                                         {store.cart.map((item, index) => (
                                             <div key={index} className="col-12">
                                                 <div className="card border">
-                                                    <div className="card-body">
+                                                    <div className="card-body p-4">
                                                         <div className="row align-items-center">
                                                             <div className="col-md-2">
                                                                 <img 
                                                                     src={item.image} 
                                                                     alt={item.name}
                                                                     className="rounded"
-                                                                    style={{ width: "60px", height: "60px", objectFit: "cover" }}
+                                                                    style={{ width: "80px", height: "80px", objectFit: "cover" }}
                                                                 />
                                                             </div>
                                                             <div className="col-md-4">
-                                                                <h6 className="fw-bold mb-1">{item.name}</h6>
-                                                                <small className="text-muted">${item.price.toFixed(2)}</small>
+                                                                <h5 className="fw-bold mb-2">{item.name}</h5>
+                                                                <span className="text-muted fs-6">${item.price.toFixed(2)}</span>
                                                             </div>
                                                             <div className="col-md-3">
-                                                                <small className="text-muted">Cantidad: {item.quantity || 1}</small>
+                                                                <span className="text-muted fs-6">Cantidad: {item.quantity || 1}</span>
                                                             </div>
                                                             <div className="col-md-3 text-end">
-                                                                <h6 className="fw-bold text-dark">
+                                                                <h5 className="fw-bold text-dark mb-0">
                                                                     ${(item.price * (item.quantity || 1)).toFixed(2)}
-                                                                </h6>
+                                                                </h5>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -225,9 +376,9 @@ export const Private = () => {
                                             </div>
                                         ))}
                                     </div>
-                                    <div className="text-center mt-4">
+                                    <div className="text-center mt-5">
                                         <button 
-                                            className="btn btn-dark me-2"
+                                            className="btn btn-dark btn-lg px-5"
                                             onClick={() => navigate('/cesta')}
                                         >
                                             Ir al carrito completo
@@ -236,77 +387,17 @@ export const Private = () => {
                                 </>
                             ) : (
                                 <div className="text-center py-5">
-                                    <i className="bi bi-cart-x fs-1 text-muted mb-3"></i>
-                                    <h5 className="text-muted">Tu carrito está vacío</h5>
-                                    <p className="text-muted">¡Añade algunos productos y vuelve aquí!</p>
+                                    <i className="bi bi-cart-x display-1 text-muted mb-4"></i>
+                                    <h4 className="text-muted mb-3">Tu carrito está vacío</h4>
+                                    <p className="text-muted fs-5 mb-4">¡Añade algunos productos y vuelve aquí!</p>
                                     <button 
-                                        className="btn btn-dark"
+                                        className="btn btn-dark btn-lg px-5"
                                         onClick={() => navigate('/productos')}
                                     >
                                         Ver productos
                                     </button>
                                 </div>
                             )}
-                        </div>
-                    </div>
-                );
-
-            case "configuracion":
-                return (
-                    <div className="card border-0 shadow-sm">
-                        <div className="card-body p-4">
-                            <h4 className="fw-bold mb-4">Configuración de Cuenta</h4>
-                            <p className="text-muted mb-4">Gestiona la seguridad y privacidad de tu cuenta.</p>
-                            
-                            <form>
-                                <div className="mb-4">
-                                    <h6 className="fw-bold mb-3">Cambiar contraseña</h6>
-                                    <div className="row">
-                                        <div className="col-md-6 mb-3">
-                                            <label className="form-label small fw-bold">Contraseña actual</label>
-                                            <input type="password" className="form-control" />
-                                        </div>
-                                        <div className="col-md-6 mb-3">
-                                            <label className="form-label small fw-bold">Nueva contraseña</label>
-                                            <input type="password" className="form-control" />
-                                        </div>
-                                        <div className="col-md-6 mb-3">
-                                            <label className="form-label small fw-bold">Confirmar nueva contraseña</label>
-                                            <input type="password" className="form-control" />
-                                        </div>
-                                    </div>
-                                    <button type="button" className="btn btn-dark">
-                                        Actualizar contraseña
-                                    </button>
-                                </div>
-                                
-                                <hr className="my-4" />
-                                
-                                <div className="mb-4">
-                                    <h6 className="fw-bold mb-3">Preferencias de notificaciones</h6>
-                                    <div className="form-check mb-2">
-                                        <input className="form-check-input" type="checkbox" id="newsletter" defaultChecked />
-                                        <label className="form-check-label" htmlFor="newsletter">
-                                            Recibir newsletter con ofertas y novedades
-                                        </label>
-                                    </div>
-                                    <div className="form-check mb-2">
-                                        <input className="form-check-input" type="checkbox" id="recommendations" defaultChecked />
-                                        <label className="form-check-label" htmlFor="recommendations">
-                                            Recibir recomendaciones personalizadas
-                                        </label>
-                                    </div>
-                                    <div className="form-check mb-3">
-                                        <input className="form-check-input" type="checkbox" id="promotions" />
-                                        <label className="form-check-label" htmlFor="promotions">
-                                            Recibir notificaciones de promociones especiales
-                                        </label>
-                                    </div>
-                                    <button type="button" className="btn btn-dark">
-                                        Guardar preferencias
-                                    </button>
-                                </div>
-                            </form>
                         </div>
                     </div>
                 );
@@ -318,75 +409,66 @@ export const Private = () => {
 
     return (
         <div className="bg-light py-5">
-            <div className="container">
+            <div className="container-fluid px-5">
                 <div className="row">
                     {/* Sidebar */}
-                    <div className="col-lg-3 mb-4">
+                    <div className="col-lg-2 mb-4">
                         <div className="card border-0 shadow-sm">
                             <div className="card-body p-0">
-                                <div className="text-center p-4 border-bottom">
+                                <div className="text-center p-5 border-bottom">
                                     <img 
-                                        src="/api/placeholder/80/80" 
+                                        src={avatar || "/api/placeholder/100/100"} 
                                         alt="Avatar" 
-                                        className="rounded-circle mb-2"
-                                        style={{ width: "80px", height: "80px", objectFit: "cover" }}
+                                        className="rounded-circle mb-3"
+                                        style={{ width: "100px", height: "100px", objectFit: "cover" }}
                                     />
-                                    <h6 className="fw-bold mb-1">¡Hola, {store.user || "Usuario"}!</h6>
-                                    <small className="text-muted">Bienvenido a tu área personal</small>
+                                    <h5 className="fw-bold mb-2">¡Hola, {getUserName()}!</h5>
+                                    <small className="text-muted fs-6">Bienvenido a tu área personal</small>
                                 </div>
                                 
                                 <div className="list-group list-group-flush">
                                     <button
-                                        className={`list-group-item list-group-item-action border-0 ${
+                                        className={`list-group-item list-group-item-action border-0 py-3 ${
                                             activeTab === "perfil" ? "active" : ""
                                         }`}
                                         onClick={() => setActiveTab("perfil")}
                                     >
-                                        <i className="bi bi-person me-2"></i>
-                                        Mi perfil
+                                        <i className="bi bi-person me-3 fs-5"></i>
+                                        <span className="fs-6">Mi perfil</span>
                                     </button>
                                     <button
-                                        className={`list-group-item list-group-item-action border-0 ${
+                                        className={`list-group-item list-group-item-action border-0 py-3 ${
                                             activeTab === "pedidos" ? "active" : ""
                                         }`}
                                         onClick={() => setActiveTab("pedidos")}
                                     >
-                                        <i className="bi bi-bag me-2"></i>
-                                        Mis pedidos
+                                        <i className="bi bi-bag me-3 fs-5"></i>
+                                        <span className="fs-6">Mis pedidos</span>
                                         {orders.length > 0 && (
                                             <span className="badge bg-dark ms-2">{orders.length}</span>
                                         )}
                                     </button>
                                     <button
-                                        className={`list-group-item list-group-item-action border-0 ${
+                                        className={`list-group-item list-group-item-action border-0 py-3 ${
                                             activeTab === "carrito" ? "active" : ""
                                         }`}
                                         onClick={() => setActiveTab("carrito")}
                                     >
-                                        <i className="bi bi-cart me-2"></i>
-                                        Mi carrito
+                                        <i className="bi bi-cart me-3 fs-5"></i>
+                                        <span className="fs-6">Mi carrito</span>
                                         {store.cart && store.cart.length > 0 && (
                                             <span className="badge bg-dark ms-2">{store.cart.length}</span>
                                         )}
                                     </button>
-                                    <button
-                                        className={`list-group-item list-group-item-action border-0 ${
-                                            activeTab === "configuracion" ? "active" : ""
-                                        }`}
-                                        onClick={() => setActiveTab("configuracion")}
-                                    >
-                                        <i className="bi bi-gear me-2"></i>
-                                        Configuración
-                                    </button>
                                     
-                                    <div className="dropdown-divider"></div>
+                                    <div className="dropdown-divider my-2"></div>
                                     
                                     <button
-                                        className="list-group-item list-group-item-action border-0 text-danger"
+                                        className="list-group-item list-group-item-action border-0 text-danger py-3"
                                         onClick={handleLogout}
                                     >
-                                        <i className="bi bi-box-arrow-right me-2"></i>
-                                        Cerrar sesión
+                                        <i className="bi bi-box-arrow-right me-3 fs-5"></i>
+                                        <span className="fs-6">Cerrar sesión</span>
                                     </button>
                                 </div>
                             </div>
@@ -394,9 +476,7 @@ export const Private = () => {
                     </div>
                     
                     {/* Main Content */}
-                    <div className="col-lg-9">
-                        {renderContent()}
-                    </div>
+                    <div className="col-lg-10">{renderContent()}</div>
                 </div>
             </div>
         </div>

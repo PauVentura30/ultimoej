@@ -72,13 +72,13 @@ export const Footer = () => (
                 <Link to="/contacto" className="text-white-50 text-decoration-none">Contacto</Link>
               </li>
               <li className="mb-1">
-                <a href="#" className="text-white-50 text-decoration-none">Términos y condiciones</a>
+                <Link to="/terminos-condiciones" className="text-white-50 text-decoration-none">Términos y condiciones</Link>
               </li>
               <li className="mb-1">
-                <a href="#" className="text-white-50 text-decoration-none">Política de privacidad</a>
+                <Link to="/politica-privacidad" className="text-white-50 text-decoration-none">Política de privacidad</Link>
               </li>
               <li className="mb-1">
-                <a href="#" className="text-white-50 text-decoration-none">Devoluciones</a>
+                <Link to="/devoluciones" className="text-white-50 text-decoration-none">Devoluciones</Link>
               </li>
             </ul>
           </div>

@@ -30,19 +30,44 @@ export const Login = () => {
             const data = await response.json()
             console.log('Login exitoso:', data)
             
-            // Guardar token en localStorage (tu backend devuelve 'access_token')
-            if (data.access_token) {
-                localStorage.setItem('auth_token', data.access_token)
+            // Obtener datos existentes del registro si existen
+            const existingUserData = localStorage.getItem('user_data');
+            let userData = null;
+            
+            if (existingUserData) {
+                // Si hay datos del registro, mantenerlos y solo actualizar email si es necesario
+                userData = JSON.parse(existingUserData);
+                userData.email = data.user; // Asegurar que el email esté actualizado
+                console.log('Datos existentes encontrados:', userData);
+            } else {
+                // Si no hay datos del registro, crear objeto básico
+                userData = {
+                    email: data.user,
+                    name: null,
+                    lastName: null,
+                    phone: null,
+                    birthDate: null,
+                    avatar: null
+                };
+                console.log('Creando datos básicos:', userData);
             }
             
-            // También actualizar el store con el token y usuario
-            dispatch({ 
-                type: "login", 
-                payload: { 
-                    token: data.access_token, 
-                    user: data.user 
-                }
-            })
+            // Guardar token y datos completos
+            if (data.access_token) {
+                localStorage.setItem('auth_token', data.access_token);
+                localStorage.setItem('user_data', JSON.stringify(userData));
+                
+                // Actualizar el store con datos completos
+                dispatch({ 
+                    type: "login", 
+                    payload: { 
+                        token: data.access_token, 
+                        user: userData  // Pasamos el objeto completo, no solo el email
+                    }
+                });
+                
+                console.log('Datos completos guardados en store:', userData);
+            }
             
             // Redirigir directamente al área privada sin mensaje
             navigate("/private")

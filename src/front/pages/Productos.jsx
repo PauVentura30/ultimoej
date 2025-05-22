@@ -1,11 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import useGlobalReducer from '../hooks/useGlobalReducer';
+import { useSearch } from '../hooks/useSearch';
 
 export function Productos() {
   const [selectedBrand, setSelectedBrand] = useState('all');
   const [priceRange, setPriceRange] = useState(300);
   const [sortBy, setSortBy] = useState('popular');
   const { dispatch } = useGlobalReducer();
+  
+  // Hook de búsqueda
+  const { searchTerm, isSearching, searchProducts, getSearchTermFromURL, clearSearch } = useSearch();
 
   const zapatillas = [
     {
@@ -134,12 +138,29 @@ export function Productos() {
     }
   ];
 
-  // Filtrar por marca
-  const filteredByBrand = selectedBrand === 'all' 
-    ? zapatillas 
-    : zapatillas.filter(item => item.brand === selectedBrand);
+  // Estado para productos filtrados por búsqueda
+  const [searchFilteredProducts, setSearchFilteredProducts] = useState(zapatillas);
 
-  // Filtrar por precio
+  // Efecto para manejar la búsqueda cuando se carga la página o cambia el término
+  useEffect(() => {
+    const urlSearchTerm = getSearchTermFromURL();
+    const currentSearchTerm = urlSearchTerm || searchTerm;
+    
+    if (currentSearchTerm && currentSearchTerm.trim()) {
+      console.log("🔍 Aplicando búsqueda:", currentSearchTerm);
+      const results = searchProducts(currentSearchTerm, zapatillas);
+      setSearchFilteredProducts(results);
+    } else {
+      // Si no hay búsqueda, mostrar todos los productos
+      setSearchFilteredProducts(zapatillas);
+    }
+  }, [searchTerm]);
+
+  // Aplicar filtros sobre los productos ya filtrados por búsqueda
+  const filteredByBrand = selectedBrand === 'all' 
+    ? searchFilteredProducts 
+    : searchFilteredProducts.filter(item => item.brand === selectedBrand);
+
   const filteredByPrice = filteredByBrand.filter(item => item.price <= priceRange);
 
   // Ordenar productos
@@ -147,12 +168,11 @@ export function Productos() {
     if (sortBy === 'priceLow') return a.price - b.price;
     if (sortBy === 'priceHigh') return b.price - a.price;
     if (sortBy === 'rating') return b.rating - a.rating;
-    // Por defecto, ordenar por popularidad (reviews)
     return b.reviews - a.reviews;
   });
 
-  // Marcas únicas para el filtro
-  const brands = [...new Set(zapatillas.map(item => item.brand))];
+  // Marcas únicas basadas en los productos filtrados por búsqueda
+  const brands = [...new Set(searchFilteredProducts.map(item => item.brand))];
 
   // Función para manejar la adición al carrito
   const handleAddToCart = (product) => {
@@ -160,9 +180,53 @@ export function Productos() {
     alert(`${product.name} añadido al carrito`);
   };
 
+  // Función para limpiar búsqueda y resetear filtros
+  const handleClearSearch = () => {
+    clearSearch();
+    setSearchFilteredProducts(zapatillas);
+    setSelectedBrand('all');
+    setPriceRange(300);
+    setSortBy('popular');
+  };
+
   return (
     <div className="container py-5">
-      <h1 className="mb-4">Zapatillas de Calle</h1>
+      {/* Header con información de búsqueda */}
+      {searchTerm && (
+        <div className="row mb-4">
+          <div className="col-12">
+            <div className="alert alert-info d-flex justify-content-between align-items-center mb-0">
+              <div>
+                {isSearching ? (
+                  <>
+                    <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                    <strong>Buscando "{searchTerm}"...</strong>
+                  </>
+                ) : (
+                  <>
+                    <i className="bi bi-search me-2"></i>
+                    <strong>Resultados para: "{searchTerm}"</strong>
+                    <span className="text-muted ms-2">
+                      ({searchFilteredProducts.length} producto{searchFilteredProducts.length !== 1 ? 's' : ''} encontrado{searchFilteredProducts.length !== 1 ? 's' : ''})
+                    </span>
+                  </>
+                )}
+              </div>
+              <button 
+                className="btn btn-outline-primary btn-sm"
+                onClick={handleClearSearch}
+              >
+                <i className="bi bi-x-circle me-1"></i>
+                Limpiar búsqueda
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <h1 className="mb-4">
+        {searchTerm ? `Búsqueda: "${searchTerm}"` : "Zapatillas de Calle"}
+      </h1>
       
       {/* Filtros y ordenación */}
       <div className="row mb-4">
@@ -225,7 +289,14 @@ export function Productos() {
           <div className="card h-100 bg-dark text-white border-0">
             <div className="card-body d-flex flex-column justify-content-center">
               <h5 className="card-title">Resultados</h5>
-              <p className="card-text mb-0">Mostrando {sortedProducts.length} de {zapatillas.length} productos</p>
+              <p className="card-text mb-0">
+                Mostrando {sortedProducts.length} de {searchTerm ? searchFilteredProducts.length : zapatillas.length} productos
+              </p>
+              {searchTerm && (
+                <small className="text-light opacity-75">
+                  ({zapatillas.length} productos en total)
+                </small>
+              )}
             </div>
           </div>
         </div>
@@ -332,10 +403,39 @@ export function Productos() {
       
       {/* Si no hay resultados */}
       {sortedProducts.length === 0 && (
-        <div className="alert alert-info text-center p-5">
-          <i className="bi bi-search fs-1 mb-3"></i>
-          <h4>No se encontraron productos</h4>
-          <p>Intenta cambiar los filtros para ver más resultados.</p>
+        <div className="text-center py-5">
+          {isSearching ? (
+            <div>
+              <div className="spinner-border text-primary mb-3" role="status">
+                <span className="visually-hidden">Buscando...</span>
+              </div>
+              <h4>Buscando productos...</h4>
+              <p className="text-muted">Por favor espera mientras buscamos "{searchTerm}"</p>
+            </div>
+          ) : searchTerm ? (
+            <div className="alert alert-warning">
+              <i className="bi bi-search fs-1 mb-3 d-block"></i>
+              <h4>No se encontraron productos para "{searchTerm}"</h4>
+              <p className="text-muted mb-3">
+                No hay zapatillas que coincidan con tu búsqueda.
+                <br />
+                Intenta con otros términos o revisa los filtros aplicados.
+              </p>
+              <button 
+                className="btn btn-primary me-2"
+                onClick={handleClearSearch}
+              >
+                <i className="bi bi-arrow-clockwise me-1"></i>
+                Ver todos los productos
+              </button>
+            </div>
+          ) : (
+            <div className="alert alert-info">
+              <i className="bi bi-funnel fs-1 mb-3 d-block"></i>
+              <h4>No se encontraron productos</h4>
+              <p className="text-muted">Intenta cambiar los filtros para ver más resultados.</p>
+            </div>
+          )}
         </div>
       )}
     </div>

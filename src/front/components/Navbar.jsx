@@ -1,16 +1,62 @@
 import { useState } from 'react';
 import useGlobalReducer from '../hooks/useGlobalReducer';
+import { useAuth } from '../hooks/useAuth';
 
 // Barra de navegación
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { store } = useGlobalReducer();
+  const [searchTerm, setSearchTerm] = useState('');
+  const { store, dispatch } = useGlobalReducer();
+  const { isLoggedIn, user } = useAuth();
   
   // Calcular total de items en el carrito
   const cartItemsCount = store.cart ? store.cart.reduce((sum, item) => sum + (item.quantity || 1), 0) : 0;
   
-  // Verificar si el usuario está logueado
-  const isLoggedIn = store.token || localStorage.getItem('auth_token');
+  // Función para manejar la búsqueda
+  const handleSearch = (e) => {
+    e.preventDefault();
+    
+    if (searchTerm.trim()) {
+      console.log("🔍 Buscando:", searchTerm.trim());
+      
+      // Despachar acción para guardar el término de búsqueda en el estado global
+      dispatch({
+        type: 'SET_SEARCH_TERM',
+        payload: searchTerm.trim()
+      });
+      
+      // Indicar que se está buscando
+      dispatch({
+        type: 'SET_SEARCHING',
+        payload: true
+      });
+      
+      // Redirigir a la página de productos con el término de búsqueda
+      const searchUrl = `/productos?search=${encodeURIComponent(searchTerm.trim())}`;
+      
+      // Si estamos en la misma página, forzar recarga para que se procese la búsqueda
+      if (window.location.pathname === '/productos') {
+        window.location.href = searchUrl;
+      } else {
+        window.location.href = searchUrl;
+      }
+      
+      // Limpiar el campo de búsqueda después de buscar
+      setSearchTerm('');
+    }
+  };
+  
+  // Función para manejar cambios en el input
+  const handleInputChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
+  
+  // Función para manejar Enter key
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch(e);
+    }
+  };
   
   return (
     <>
@@ -35,7 +81,6 @@ export function Navbar() {
               <li className="nav-item">
                 <a className="nav-link" href="/productos">Productos</a>
               </li>
-              
               <li className="nav-item">
                 <a className="nav-link" href="/ofertas">Ofertas</a>
               </li>
@@ -44,18 +89,26 @@ export function Navbar() {
               </li>
             </ul>
             
-            <div className="d-flex me-3">
+            {/* Formulario de búsqueda mejorado */}
+            <form onSubmit={handleSearch} className="d-flex me-3">
               <div className="input-group">
                 <input 
                   type="text" 
                   className="form-control" 
-                  placeholder="Buscar productos..." 
+                  placeholder="Buscar productos..."
+                  value={searchTerm}
+                  onChange={handleInputChange}
+                  onKeyPress={handleKeyPress}
                 />
-                <button className="btn btn-outline-secondary" type="submit">
+                <button 
+                  className="btn btn-outline-secondary" 
+                  type="submit"
+                  disabled={!searchTerm.trim()}
+                >
                   <i className="bi bi-search"></i>
                 </button>
               </div>
-            </div>
+            </form>
             
             <div className="d-flex align-items-center">
               {/* Icono del carrito con contador dinámico */}
@@ -77,7 +130,7 @@ export function Navbar() {
                 <i className="bi bi-person fs-5 me-1"></i>
                 {isLoggedIn ? (
                   <span className="d-none d-sm-inline small">
-                    {store.user ? store.user.split('@')[0] : "Mi cuenta"}
+                    {user?.name || user?.email?.split('@')[0] || "Mi cuenta"}
                   </span>
                 ) : (
                   <span className="d-none d-sm-inline small">Entrar</span>
@@ -85,7 +138,7 @@ export function Navbar() {
               </a>
             </div>
           </div>
-        </div>
+        </div>  
       </nav>
     </>
   );

@@ -13,6 +13,8 @@ import { Productos } from './pages/Productos.jsx';
 import { Ofertas } from './pages/Ofertas.jsx';
 import { Contacto } from './pages/Contacto.jsx';
 import { Cesta } from './pages/Cesta.jsx'; 
+import TerminosCondiciones from './pages/TerminosCondiciones.jsx';
+import PoliticaPrivacidad from './pages/PoliticaPrivacidad.jsx';
 
 export const router = createBrowserRouter(
     createRoutesFromElements(
@@ -26,6 +28,8 @@ export const router = createBrowserRouter(
         <Route path="/ofertas" element={<Ofertas />} />
         <Route path="/contacto" element={<Contacto />} />
         <Route path="/cesta" element={<Cesta />} /> 
+        <Route path="/terminos-condiciones" element={<TerminosCondiciones />} />
+        <Route path="/politica-privacidad" element={<PoliticaPrivacidad />} />
       </Route>
     )
 );

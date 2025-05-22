@@ -4,9 +4,9 @@ import useGlobalReducer from '../hooks/useGlobalReducer';
 export function Cesta() {
   const { store, dispatch } = useGlobalReducer();
 
-  console.log("🛒 CESTA - Store completo:", store);
-  console.log("🛒 CESTA - Carrito actual:", store.cart);
-  console.log("🛒 CESTA - Longitud del carrito:", store.cart ? store.cart.length : 'undefined');
+  console.log("CESTA - Store completo:", store);
+  console.log("CESTA - Carrito actual:", store.cart);
+  console.log("CESTA - Longitud del carrito:", store.cart ? store.cart.length : 'undefined');
 
   // Funciones del carrito
   const removeItem = (id) => {
