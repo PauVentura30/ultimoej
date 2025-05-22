@@ -1,8 +1,12 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import useGlobalReducer from '../hooks/useGlobalReducer';
+import { useAuth } from '../hooks/useAuth';
 
 export function Cesta() {
   const { store, dispatch } = useGlobalReducer();
+  const { isLoggedIn } = useAuth();
+  const navigate = useNavigate();
 
   console.log("CESTA - Store completo:", store);
   console.log("CESTA - Carrito actual:", store.cart);
@@ -23,6 +27,18 @@ export function Cesta() {
 
   const clearCart = () => {
     dispatch({ type: "clear_cart" });
+  };
+
+  // Función para proceder al checkout
+  const handleCheckout = () => {
+    if (!isLoggedIn) {
+      // Redirigir al login si no está autenticado
+      navigate('/login');
+      return;
+    }
+    
+    // Redirigir al checkout
+    navigate('/checkout');
   };
 
   // Calcular subtotal (sin impuestos ni envío)
@@ -173,9 +189,32 @@ export function Cesta() {
                 <span className="fw-bold">Total</span>
                 <span className="fw-bold fs-5 text-dark">${total.toFixed(2)}</span>
               </div>
-              <button className="btn btn-dark w-100 mt-2">
-                Realizar pedido
+              
+              {/* Botón de checkout actualizado */}
+              <button 
+                className="btn btn-dark w-100 mt-2"
+                onClick={handleCheckout}
+              >
+                <i className="bi bi-credit-card me-2"></i>
+                {isLoggedIn ? 'Realizar pedido' : 'Iniciar sesión para comprar'}
               </button>
+              
+              {!isLoggedIn && (
+                <small className="text-muted d-block text-center mt-2">
+                  Necesitas iniciar sesión para completar tu compra
+                </small>
+              )}
+              
+              {/* Iconos de métodos de pago */}
+              <div className="text-center mt-3">
+                <small className="text-muted d-block mb-2">Pagos seguros con:</small>
+                <div className="d-flex justify-content-center gap-2">
+                  <i className="bi bi-credit-card fs-4 text-muted"></i>
+                  <i className="bi bi-paypal fs-4 text-muted"></i>
+                  <i className="bi bi-apple fs-4 text-muted"></i>
+                  <i className="bi bi-google fs-4 text-muted"></i>
+                </div>
+              </div>
             </div>
           </div>
           

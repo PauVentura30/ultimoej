@@ -15,6 +15,21 @@ from flask_jwt_extended import JWTManager
 from flask_bcrypt import Bcrypt
 from datetime import timedelta
 
+# Importaciones para Stripe (añadidas de forma segura)
+try:
+    import stripe
+    from dotenv import load_dotenv
+    load_dotenv()
+    # Solo configurar Stripe si la clave existe
+    if os.getenv('STRIPE_SECRET_KEY'):
+        stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
+        print("✅ Stripe configurado correctamente")
+    else:
+        print("⚠️ STRIPE_SECRET_KEY no encontrada en .env")
+except ImportError:
+    print("⚠️ Stripe no instalado - instalarlo con: pipenv install stripe")
+    stripe = None
+
 # from models import Person
 ENV = "development" if os.getenv("FLASK_DEBUG") == "1" else "production"
 static_file_dir = os.path.join(os.path.dirname(
@@ -56,6 +71,16 @@ setup_commands(app)
 
 # Add all endpoints form the API with a "api" prefix
 app.register_blueprint(api, url_prefix='/api')
+
+# Importar y registrar rutas de Stripe de forma segura
+try:
+    from api.stripe_routes import stripe_bp
+    app.register_blueprint(stripe_bp, url_prefix='/api')
+    print("✅ Rutas de Stripe registradas correctamente")
+except ImportError as e:
+    print(f"⚠️ No se pudieron cargar las rutas de Stripe: {e}")
+except Exception as e:
+    print(f"⚠️ Error configurando Stripe: {e}")
 
 # Handle/serialize errors like a JSON object
 @app.errorhandler(APIException)

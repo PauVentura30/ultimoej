@@ -8,7 +8,6 @@ verify_ssl = true
 [packages]
 flask-sqlalchemy = "*"
 psycopg2-binary = "*"
-python-dotenv = "*"
 gunicorn = "*"
 cloudinary = "*"
 flask-admin = "*"
@@ -21,6 +20,8 @@ flask-swagger = "*"
 flask-cors = "*"
 flask-jwt-extended = "*"
 flask-bcrypt = "*"
+stripe = "*"
+python-dotenv = "*"
 
 [requires]
 python_version = "3.13"
