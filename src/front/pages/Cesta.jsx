@@ -41,10 +41,10 @@ export function Cesta() {
     navigate('/checkout');
   };
 
-  // Calcular subtotal (sin impuestos ni envío)
+  // Calcular subtotal
   const subtotal = store.cart ? store.cart.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0) : 0;
-  const impuestos = subtotal * 0.21; // 21% de IVA
-  const envio = subtotal > 50 ? 0 : 4.99; // Envío gratis para pedidos > 50€
+  const impuestos = subtotal * 0.21;
+  const envio = subtotal > 150 ? 0 : 4.99;
   const total = subtotal + impuestos + envio;
 
   if (!store.cart || store.cart.length === 0) {
@@ -190,7 +190,7 @@ export function Cesta() {
                 <span className="fw-bold fs-5 text-dark">${total.toFixed(2)}</span>
               </div>
               
-              {/* Botón de checkout actualizado */}
+              {/* Botón de checkout */}
               <button 
                 className="btn btn-dark w-100 mt-2"
                 onClick={handleCheckout}
@@ -214,21 +214,6 @@ export function Cesta() {
                   <i className="bi bi-apple fs-4 text-muted"></i>
                   <i className="bi bi-google fs-4 text-muted"></i>
                 </div>
-              </div>
-            </div>
-          </div>
-          
-          {/* Códigos promocionales */}
-          <div className="card border-0 shadow-sm">
-            <div className="card-body">
-              <h6 className="mb-3">Código promocional</h6>
-              <div className="input-group mb-2">
-                <input 
-                  type="text" 
-                  className="form-control" 
-                  placeholder="Introduce tu código" 
-                />
-                <button className="btn btn-outline-dark" type="button">Aplicar</button>
               </div>
             </div>
           </div>
