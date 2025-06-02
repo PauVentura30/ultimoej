@@ -1,24 +1,29 @@
 import { useEffect } from 'react';
 import useGlobalReducer from './useGlobalReducer';
 
-// Hook personalizado para manejar búsquedas
+// Hook personalizado para manejar toda la funcionalidad de búsqueda de productos
 export function useSearch() {
+  // Accede al estado global y dispatcher
   const { store, dispatch } = useGlobalReducer();
 
-  // Función para buscar productos localmente
+  // Función principal para filtrar productos basándose en un término de búsqueda
   const searchProducts = (searchTerm, products = []) => {
     console.log("🔍 Buscando productos con término:", searchTerm);
     
+    // Si no hay término de búsqueda, limpia la búsqueda y retorna todos los productos
     if (!searchTerm || !searchTerm.trim()) {
       dispatch({ type: 'CLEAR_SEARCH' });
-      return products; // Devolver todos los productos si no hay término
+      return products;
     }
 
+    // Activa el estado de búsqueda en progreso
     dispatch({ type: 'SET_SEARCHING', payload: true });
 
     try {
+      // Normaliza el término de búsqueda para comparación
       const term = searchTerm.toLowerCase().trim();
       
+      // Filtra productos que coincidan en nombre, marca o colores
       const filteredProducts = products.filter(product => {
         return (
           product.name?.toLowerCase().includes(term) ||
@@ -29,6 +34,7 @@ export function useSearch() {
 
       console.log("📋 Productos encontrados:", filteredProducts.length);
       
+      // Guarda los resultados de búsqueda en el estado global
       dispatch({ 
         type: 'SET_SEARCH_RESULTS', 
         payload: filteredProducts 
@@ -43,22 +49,23 @@ export function useSearch() {
     }
   };
 
-  // Función para obtener el término de búsqueda de la URL
+  // Función para extraer el término de búsqueda desde los parámetros de la URL
   const getSearchTermFromURL = () => {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get('search') || '';
   };
 
-  // Función para limpiar la búsqueda
+  // Función para limpiar completamente el estado de búsqueda
   const clearSearch = () => {
     dispatch({ type: 'CLEAR_SEARCH' });
-    // Limpiar la URL también
+    
+    // Limpia también el parámetro de búsqueda de la URL
     const url = new URL(window.location);
     url.searchParams.delete('search');
     window.history.replaceState({}, '', url);
   };
 
-  // Efecto para sincronizar con la URL al cargar el componente
+  // Efecto para sincronizar el estado con la URL al cargar el componente
   useEffect(() => {
     const urlSearchTerm = getSearchTermFromURL();
     if (urlSearchTerm && urlSearchTerm !== store.searchTerm) {
@@ -69,13 +76,14 @@ export function useSearch() {
     }
   }, []);
 
+  // Retorna el estado y funciones de búsqueda para uso en componentes
   return {
-    // Estado
+    // Estado actual de búsqueda
     searchTerm: store.searchTerm,
     searchResults: store.searchResults,
     isSearching: store.isSearching,
     
-    // Funciones
+    // Funciones para manejar búsquedas
     searchProducts,
     getSearchTermFromURL,
     clearSearch

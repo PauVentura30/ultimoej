@@ -2,13 +2,19 @@ import React, { useState } from 'react';
 import useGlobalReducer from '/workspaces/ultimoej/src/front/hooks/useGlobalReducer.jsx';
 
 export const ShoppingCart = () => {
+  // Hook para acceder al estado global y dispatcher
   const { store, dispatch } = useGlobalReducer();
+  
+  // Estado para controlar la visibilidad del dropdown del carrito
   const [isOpen, setIsOpen] = useState(false);
   
+  // Extrae el array de productos del carrito desde el store
   const { cart } = store;
   
+  // Función para mostrar/ocultar el carrito dropdown
   const toggleCart = () => setIsOpen(!isOpen);
   
+  // Función para eliminar un producto específico del carrito
   const removeItem = (id) => {
     dispatch({
       type: 'remove_from_cart',
@@ -16,6 +22,7 @@ export const ShoppingCart = () => {
     });
   };
   
+  // Función para actualizar la cantidad de un producto en el carrito
   const updateQuantity = (id, quantity) => {
     if (quantity < 1) return;
     
@@ -25,17 +32,19 @@ export const ShoppingCart = () => {
     });
   };
   
+  // Función para vaciar completamente el carrito
   const clearCart = () => {
     dispatch({ type: 'clear_cart' });
   };
   
+  // Función para calcular el precio total de todos los productos
   const calculateTotal = () => {
     return cart.reduce((total, item) => total + (item.price * (item.quantity || 1)), 0).toFixed(2);
   };
   
   return (
     <div className="relative">
-      {/* Botón del carrito */}
+      {/* Botón del carrito con icono SVG y contador de items */}
       <button 
         onClick={toggleCart}
         className="flex items-center p-2 text-gray-700 hover:text-blue-600"
@@ -57,9 +66,10 @@ export const ShoppingCart = () => {
         <span className="ml-1">{cart.length}</span>
       </button>
       
-      {/* Contenido del carrito */}
+      {/* Dropdown del carrito que se muestra condicionalmente */}
       {isOpen && (
         <div className="absolute right-0 mt-2 w-72 bg-white rounded-md shadow-lg z-50 border border-gray-200">
+          {/* Header del carrito con título y botón de cerrar */}
           <div className="p-3 border-b border-gray-200">
             <div className="flex justify-between items-center">
               <h3 className="font-medium">Tu carrito</h3>
@@ -85,12 +95,16 @@ export const ShoppingCart = () => {
             </div>
           </div>
           
+          {/* Lista scrolleable de productos en el carrito */}
           <div className="max-h-64 overflow-y-auto p-3">
             {cart.length === 0 ? (
+              // Mensaje cuando el carrito está vacío
               <p className="text-gray-500 text-sm text-center py-4">Tu carrito está vacío</p>
             ) : (
+              // Renderiza cada producto del carrito
               cart.map(item => (
                 <div key={item.id} className="flex items-center justify-between py-2 border-b border-gray-100">
+                  {/* Información del producto con imagen, nombre y precio */}
                   <div className="flex items-center">
                     {item.image && (
                       <img 
@@ -105,6 +119,7 @@ export const ShoppingCart = () => {
                     </div>
                   </div>
                   
+                  {/* Controles de cantidad y botón eliminar */}
                   <div className="flex items-center">
                     <button
                       onClick={() => updateQuantity(item.id, (item.quantity || 1) - 1)}
@@ -144,6 +159,7 @@ export const ShoppingCart = () => {
             )}
           </div>
           
+          {/* Footer con total y botones de acción (solo si hay productos) */}
           {cart.length > 0 && (
             <div className="p-3 border-t border-gray-200">
               <div className="flex justify-between items-center mb-2">

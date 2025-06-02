@@ -4,19 +4,22 @@ import useGlobalReducer from '../hooks/useGlobalReducer';
 import { useAuth } from '../hooks/useAuth';
 
 export function Cesta() {
+  // Hooks para manejar estado global, navegación y autenticación
   const { store, dispatch } = useGlobalReducer();
   const { isLoggedIn } = useAuth();
   const navigate = useNavigate();
 
+  // Debug para monitorear el estado del carrito
   console.log("CESTA - Store completo:", store);
   console.log("CESTA - Carrito actual:", store.cart);
   console.log("CESTA - Longitud del carrito:", store.cart ? store.cart.length : 'undefined');
 
-  // Funciones del carrito
+  // Función para eliminar un producto específico del carrito
   const removeItem = (id) => {
     dispatch({ type: "remove_from_cart", payload: id });
   };
 
+  // Función para actualizar la cantidad de un producto en el carrito
   const updateQuantity = (id, quantity) => {
     if (quantity <= 0) {
       removeItem(id);
@@ -25,28 +28,30 @@ export function Cesta() {
     }
   };
 
+  // Función para vaciar completamente el carrito
   const clearCart = () => {
     dispatch({ type: "clear_cart" });
   };
 
-  // Función para proceder al checkout
+  // Función para proceder al proceso de checkout
   const handleCheckout = () => {
     if (!isLoggedIn) {
-      // Redirigir al login si no está autenticado
+      // Redirige al login si el usuario no está autenticado
       navigate('/login');
       return;
     }
     
-    // Redirigir al checkout
+    // Redirige a la página de checkout
     navigate('/checkout');
   };
 
-  // Calcular subtotal
+  // Cálculos de precios y totales
   const subtotal = store.cart ? store.cart.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0) : 0;
   const impuestos = subtotal * 0.21;
   const envio = subtotal > 150 ? 0 : 4.99;
   const total = subtotal + impuestos + envio;
 
+  // Renderiza estado vacío si no hay productos en el carrito
   if (!store.cart || store.cart.length === 0) {
     return (
       <div className="container py-5">
@@ -67,8 +72,9 @@ export function Cesta() {
       <h1 className="mb-4">Tu Carrito</h1>
       
       <div className="row">
+        {/* Columna izquierda: Lista de productos en el carrito */}
         <div className="col-lg-8">
-          {/* Cabecera de la tabla */}
+          {/* Tabla de productos con información detallada */}
           <div className="card mb-4 border-0 shadow-sm">
             <div className="card-body">
               <div className="table-responsive">
@@ -83,8 +89,10 @@ export function Cesta() {
                     </tr>
                   </thead>
                   <tbody>
+                    {/* Renderiza cada producto del carrito */}
                     {store.cart.map((item) => (
                       <tr key={item.id}>
+                        {/* Columna de información del producto */}
                         <td className="ps-0">
                           <div className="d-flex align-items-center">
                             <img 
@@ -95,6 +103,7 @@ export function Cesta() {
                             />
                             <div>
                               <h6 className="mb-0">{item.name}</h6>
+                              {/* Badge condicional para ofertas o productos nuevos */}
                               {item.badge && (
                                 <span className={`badge ${
                                   item.badge === 'Oferta' ? 'bg-danger' :
@@ -107,6 +116,7 @@ export function Cesta() {
                             </div>
                           </div>
                         </td>
+                        {/* Columna de controles de cantidad */}
                         <td className="text-center">
                           <div className="input-group input-group-sm" style={{maxWidth: "120px", margin: "0 auto"}}>
                             <button 
@@ -131,8 +141,10 @@ export function Cesta() {
                             </button>
                           </div>
                         </td>
+                        {/* Columnas de precios */}
                         <td className="text-center">${item.price.toFixed(2)}</td>
                         <td className="text-center fw-bold">${(item.price * (item.quantity || 1)).toFixed(2)}</td>
+                        {/* Botón para eliminar producto */}
                         <td className="text-end pe-0">
                           <button 
                             className="btn btn-sm btn-link text-danger"
@@ -149,7 +161,7 @@ export function Cesta() {
             </div>
           </div>
           
-          {/* Botones de acción */}
+          {/* Botones de navegación y acciones */}
           <div className="d-flex justify-content-between mb-4">
             <a href="/productos" className="btn btn-outline-dark">
               <i className="bi bi-arrow-left me-2"></i>
@@ -165,13 +177,14 @@ export function Cesta() {
           </div>
         </div>
         
+        {/* Columna derecha: Resumen del pedido */}
         <div className="col-lg-4">
-          {/* Resumen del pedido */}
           <div className="card border-0 shadow-sm mb-4">
             <div className="card-header bg-transparent border-0 pt-4">
               <h5 className="mb-0">Resumen del pedido</h5>
             </div>
             <div className="card-body">
+              {/* Desglose de precios */}
               <div className="d-flex justify-content-between mb-2">
                 <span className="text-muted">Subtotal</span>
                 <span>${subtotal.toFixed(2)}</span>
@@ -190,7 +203,7 @@ export function Cesta() {
                 <span className="fw-bold fs-5 text-dark">${total.toFixed(2)}</span>
               </div>
               
-              {/* Botón de checkout */}
+              {/* Botón de checkout con lógica condicional */}
               <button 
                 className="btn btn-dark w-100 mt-2"
                 onClick={handleCheckout}
@@ -199,6 +212,7 @@ export function Cesta() {
                 {isLoggedIn ? 'Realizar pedido' : 'Iniciar sesión para comprar'}
               </button>
               
+              {/* Mensaje informativo para usuarios no autenticados */}
               {!isLoggedIn && (
                 <small className="text-muted d-block text-center mt-2">
                   Necesitas iniciar sesión para completar tu compra

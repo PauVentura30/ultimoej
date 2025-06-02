@@ -2,6 +2,7 @@ import React from 'react';
 
 export function Contacto() {
   return (
+    // Contenedor principal con fondo degradado
     <div style={{ 
       minHeight: '100vh', 
       background: 'linear-gradient(135deg, #f8fafc 0%, #e7e5f4 100%)',
@@ -9,7 +10,7 @@ export function Contacto() {
       paddingBottom: '3rem'
     }}>
       <div className="container">
-        {/* Header */}
+        {/* Cabecera de la página */}
         <div className="row">
           <div className="col-12">
             <div className="text-center mb-5">
@@ -22,14 +23,15 @@ export function Contacto() {
         </div>
 
         <div className="row g-4">
-          {/* Información de contacto */}
+          {/* Columna izquierda: Información de contacto */}
           <div className="col-lg-6">
             <div className="card border-0 shadow-lg h-100 rounded-4">
               <div className="card-body p-4 p-md-5">
                 <h2 className="h3 fw-bold text-dark mb-4">Información de Contacto</h2>
                 
-                {/* Contact Info */}
+                {/* Lista de métodos de contacto con iconos */}
                 <div className="row g-4">
+                  {/* Sección de dirección física */}
                   <div className="col-12">
                     <div className="d-flex align-items-center p-3 rounded-3" style={{ backgroundColor: '#f8f9fa' }}>
                       <div className="flex-shrink-0 me-3">
@@ -48,6 +50,7 @@ export function Contacto() {
                     </div>
                   </div>
                   
+                  {/* Sección de email */}
                   <div className="col-12">
                     <div className="d-flex align-items-center p-3 rounded-3" style={{ backgroundColor: '#f8f9fa' }}>
                       <div className="flex-shrink-0 me-3">
@@ -65,6 +68,7 @@ export function Contacto() {
                     </div>
                   </div>
                   
+                  {/* Sección de teléfono */}
                   <div className="col-12">
                     <div className="d-flex align-items-center p-3 rounded-3" style={{ backgroundColor: '#f8f9fa' }}>
                       <div className="flex-shrink-0 me-3">
@@ -83,7 +87,7 @@ export function Contacto() {
                   </div>
                 </div>
                 
-                {/* Horario */}
+                {/* Sección de horarios de atención */}
                 <div className="mt-4 p-4 rounded-3" style={{ backgroundColor: '#f8fafc' }}>
                   <div className="d-flex align-items-center mb-3">
                     <svg width="20" height="20" fill="none" stroke="#6b7280" viewBox="0 0 24 24" className="me-2">
@@ -110,13 +114,14 @@ export function Contacto() {
             </div>
           </div>
           
-          {/* Formulario de contacto */}
+          {/* Columna derecha: Formulario de contacto */}
           <div className="col-lg-6">
             <div className="card border-0 shadow-lg h-100 rounded-4">
               <div className="card-body p-4 p-md-5">
                 <h2 className="h3 fw-bold text-dark mb-4">Envíanos un mensaje</h2>
                 
                 <div className="row g-3">
+                  {/* Campo de nombre */}
                   <div className="col-12">
                     <label htmlFor="nombre" className="form-label fw-medium text-dark">
                       Nombre
@@ -141,6 +146,7 @@ export function Contacto() {
                     />
                   </div>
                   
+                  {/* Campo de email */}
                   <div className="col-12">
                     <label htmlFor="email" className="form-label fw-medium text-dark">
                       Email
@@ -165,6 +171,7 @@ export function Contacto() {
                     />
                   </div>
                   
+                  {/* Campo de asunto */}
                   <div className="col-12">
                     <label htmlFor="asunto" className="form-label fw-medium text-dark">
                       Asunto
@@ -189,6 +196,7 @@ export function Contacto() {
                     />
                   </div>
                   
+                  {/* Campo de mensaje */}
                   <div className="col-12">
                     <label htmlFor="mensaje" className="form-label fw-medium text-dark">
                       Mensaje
@@ -214,6 +222,7 @@ export function Contacto() {
                     ></textarea>
                   </div>
                   
+                  {/* Botón de envío con efectos hover */}
                   <div className="col-12 mt-4">
                     <button
                       type="submit"
@@ -248,7 +257,7 @@ export function Contacto() {
           </div>
         </div>
         
-        {/* Sección adicional decorativa */}
+        {/* Sección final con llamada a la acción para ayuda inmediata */}
         <div className="row mt-5">
           <div className="col-12">
             <div className="text-center">

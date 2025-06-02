@@ -2,21 +2,22 @@ import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import PropTypes from "prop-types";
 
-// This component allows the scroll to go to the beginning when changing the view,
-// otherwise it would remain in the position of the previous view. 
-
 const ScrollToTop = ({ children }) => {
+    // Hook para detectar cambios en la ruta actual
     const location = useLocation();
 
     useEffect(() => {
+        // Desplaza la página al inicio cuando cambia la ruta
         window.scrollTo(0, 0);
-    }, [location.pathname]); // Only trigger when the route changes
+    }, [location.pathname]); // Se ejecuta solo cuando cambia la ruta
 
+    // Renderiza los componentes hijos sin modificaciones
     return children;
 };
 
 export default ScrollToTop;
 
+// Validación de tipos para las props del componente
 ScrollToTop.propTypes = {
     children: PropTypes.any
 };

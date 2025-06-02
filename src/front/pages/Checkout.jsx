@@ -10,10 +10,10 @@ import { useNavigate } from 'react-router-dom';
 import useGlobalReducer from '../hooks/useGlobalReducer';
 import { useAuth } from '../hooks/useAuth';
 
-// Cargar Stripe con tu clave pública
+// Inicializa Stripe con la clave pública desde variables de entorno
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
-// Estilos para el formulario de tarjeta
+// Configuración de estilos para el elemento de tarjeta de crédito
 const cardElementOptions = {
   style: {
     base: {
@@ -30,19 +30,23 @@ const cardElementOptions = {
   },
 };
 
-// Componente del formulario de checkout
+// Componente principal del formulario de checkout
 function CheckoutForm() {
+  // Hooks de Stripe para manejar el pago
   const stripe = useStripe();
   const elements = useElements();
+  
+  // Hooks de la aplicación
   const navigate = useNavigate();
   const { store, dispatch } = useGlobalReducer();
   const { user, isLoggedIn } = useAuth();
 
+  // Estados para el proceso de pago
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState('');
   const [clientSecret, setClientSecret] = useState('');
   
-  // Datos de envío
+  // Estado para los datos de envío del formulario
   const [shippingData, setShippingData] = useState({
     name: user?.name || '',
     lastName: user?.lastName || '',
@@ -54,13 +58,13 @@ function CheckoutForm() {
     country: 'ES'
   });
 
-  // Calcular totales (igual que en Cesta.jsx)
+  // Cálculos de precios del pedido
   const subtotal = store.cart ? store.cart.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0) : 0;
-  const impuestos = subtotal * 0.21; // 21% de IVA
-  const envio = subtotal > 50 ? 0 : 4.99; // Envío gratis para pedidos > 50€
+  const impuestos = subtotal * 0.21; // IVA del 21%
+  const envio = subtotal > 50 ? 0 : 4.99; // Envío gratuito para pedidos superiores a 50€
   const total = subtotal + impuestos + envio;
 
-  // Crear Payment Intent cuando se carga el componente
+  // Efecto para verificar autenticación y crear Payment Intent al cargar
   useEffect(() => {
     if (!isLoggedIn) {
       navigate('/login');
@@ -75,6 +79,7 @@ function CheckoutForm() {
     createPaymentIntent();
   }, []);
 
+  // Función para crear el Payment Intent en Stripe
   const createPaymentIntent = async () => {
     try {
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/create-payment-intent`, {
@@ -84,7 +89,7 @@ function CheckoutForm() {
           'Authorization': `Bearer ${store.token}`
         },
         body: JSON.stringify({
-          amount: Math.round(total * 100), // Stripe usa centavos
+          amount: Math.round(total * 100), // Stripe maneja los montos en centavos
           currency: 'eur',
           items: store.cart,
           shipping: shippingData
@@ -104,6 +109,7 @@ function CheckoutForm() {
     }
   };
 
+  // Maneja los cambios en los campos del formulario de envío
   const handleShippingChange = (e) => {
     setShippingData({
       ...shippingData,
@@ -111,6 +117,7 @@ function CheckoutForm() {
     });
   };
 
+  // Función principal para procesar el pago
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -123,7 +130,7 @@ function CheckoutForm() {
 
     const cardElement = elements.getElement(CardElement);
 
-    // Confirmar el pago SIN shipping (se configuró en el backend)
+    // Confirma el pago con Stripe usando los datos del formulario
     const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
       payment_method: {
         card: cardElement,
@@ -139,19 +146,19 @@ function CheckoutForm() {
           },
         },
       },
-      // REMOVIDO: shipping - se maneja solo en el backend
     });
 
     if (stripeError) {
       setError(stripeError.message);
       setIsProcessing(false);
     } else if (paymentIntent && paymentIntent.status === 'succeeded') {
-      // Pago exitoso - limpiar carrito y redirigir
+      // Pago exitoso: limpiar carrito y redirigir a página de éxito
       dispatch({ type: 'clear_cart' });
       navigate(`/checkout/success?payment_intent=${paymentIntent.id}`);
     }
   };
 
+  // Renderiza mensaje si el carrito está vacío
   if (!store.cart || store.cart.length === 0) {
     return (
       <div className="container py-5">
@@ -168,12 +175,14 @@ function CheckoutForm() {
   return (
     <div className="container py-5">
       <div className="row">
+        {/* Columna izquierda: Formulario de checkout */}
         <div className="col-lg-8">
           <div className="card border-0 shadow-sm">
             <div className="card-body p-4">
               <h3 className="fw-bold mb-4">Información de envío</h3>
               
               <form onSubmit={handleSubmit}>
+                {/* Campos de información personal */}
                 <div className="row mb-3">
                   <div className="col-md-6">
                     <label className="form-label">Nombre *</label>
@@ -199,6 +208,7 @@ function CheckoutForm() {
                   </div>
                 </div>
 
+                {/* Campos de contacto */}
                 <div className="row mb-3">
                   <div className="col-md-6">
                     <label className="form-label">Email *</label>
@@ -224,6 +234,7 @@ function CheckoutForm() {
                   </div>
                 </div>
 
+                {/* Campo de dirección */}
                 <div className="mb-3">
                   <label className="form-label">Dirección *</label>
                   <input
@@ -237,6 +248,7 @@ function CheckoutForm() {
                   />
                 </div>
 
+                {/* Campos de ubicación */}
                 <div className="row mb-3">
                   <div className="col-md-6">
                     <label className="form-label">Ciudad *</label>
@@ -266,6 +278,7 @@ function CheckoutForm() {
 
                 <h3 className="fw-bold mb-4">Información de pago</h3>
                 
+                {/* Elemento de tarjeta de crédito de Stripe */}
                 <div className="mb-4">
                   <label className="form-label">Datos de la tarjeta *</label>
                   <div className="border rounded p-3">
@@ -273,6 +286,7 @@ function CheckoutForm() {
                   </div>
                 </div>
 
+                {/* Mostrar errores de pago */}
                 {error && (
                   <div className="alert alert-danger">
                     <i className="bi bi-exclamation-triangle me-2"></i>
@@ -280,6 +294,7 @@ function CheckoutForm() {
                   </div>
                 )}
 
+                {/* Botón de procesar pago */}
                 <button
                   type="submit"
                   className="btn btn-dark w-100 py-3"
@@ -299,14 +314,14 @@ function CheckoutForm() {
           </div>
         </div>
 
+        {/* Columna derecha: Resumen del pedido */}
         <div className="col-lg-4">
-          {/* Resumen del pedido */}
           <div className="card border-0 shadow-sm">
             <div className="card-header bg-transparent">
               <h5 className="mb-0">Resumen del pedido</h5>
             </div>
             <div className="card-body">
-              {/* Productos */}
+              {/* Lista de productos en el carrito */}
               {store.cart.map((item) => (
                 <div key={item.id} className="d-flex align-items-center mb-3">
                   <img 
@@ -325,6 +340,7 @@ function CheckoutForm() {
 
               <hr />
 
+              {/* Desglose de precios */}
               <div className="d-flex justify-content-between mb-2">
                 <span>Subtotal</span>
                 <span>${subtotal.toFixed(2)}</span>
@@ -350,7 +366,7 @@ function CheckoutForm() {
   );
 }
 
-// Componente principal que envuelve con Stripe Elements
+// Componente wrapper que proporciona el contexto de Stripe Elements
 export function Checkout() {
   return (
     <Elements stripe={stripePromise}>

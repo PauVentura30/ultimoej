@@ -1,3 +1,4 @@
+// Configuración de todas las rutas de la aplicación React
 import {
     createBrowserRouter,
     createRoutesFromElements,
@@ -21,21 +22,36 @@ import { CheckoutCancel } from './pages/CheckoutCancel.jsx';
 
 export const router = createBrowserRouter(
     createRoutesFromElements(
+    // CreateRoutesFromElements permite crear rutas de forma declarativa
+    // Layout es el componente padre que mantiene Navbar y Footer en todas las vistas
+    // Las rutas hijas reemplazan el <Outlet> component en Layout
+    // errorElement será la página por defecto cuando no se encuentra una ruta
+    
+      // Ruta raíz: todas las navegaciones parten de aquí
       <Route path="/" element={<Layout />} errorElement={<h1>Not found!</h1>} >
-        <Route path= "/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/private" element={<Private />} />
-        <Route path="/single/:theId" element={ <Single />} />  
-        <Route path="/register" element={<Register />} />
-        <Route path="/productos" element={<Productos />} />
-        <Route path="/ofertas" element={<Ofertas />} />
-        <Route path="/contacto" element={<Contacto />} />
-        <Route path="/cesta" element={<Cesta />} /> 
-        <Route path="/terminos-condiciones" element={<TerminosCondiciones />} />
-        <Route path="/politica-privacidad" element={<PoliticaPrivacidad />} />
-        <Route path="/checkout" element={<Checkout />} />
-        <Route path="/checkout/success" element={<CheckoutSuccess />} />
-        <Route path="/checkout/cancel" element={<CheckoutCancel />} />
+        
+        {/* Rutas principales de la aplicación */}
+        <Route path= "/" element={<Home />} />  {/* Página principal/home */}
+        <Route path="/login" element={<Login />} />  {/* Página de inicio de sesión */}
+        <Route path="/private" element={<Private />} />  {/* Página protegida */}
+        <Route path="/single/:theId" element={ <Single />} />  {/* Ruta dinámica con parámetro */}
+        <Route path="/register" element={<Register />} />  {/* Página de registro de usuarios */}
+        
+        {/* Rutas del catálogo y tienda */}
+        <Route path="/productos" element={<Productos />} />  {/* Catálogo de productos */}
+        <Route path="/ofertas" element={<Ofertas />} />  {/* Página de ofertas especiales */}
+        <Route path="/contacto" element={<Contacto />} />  {/* Formulario de contacto */}
+        <Route path="/cesta" element={<Cesta />} />  {/* Carrito de compras */}
+        
+        {/* Rutas legales */}
+        <Route path="/terminos-condiciones" element={<TerminosCondiciones />} />  {/* Términos y condiciones */}
+        <Route path="/politica-privacidad" element={<PoliticaPrivacidad />} />  {/* Política de privacidad */}
+        
+        {/* Rutas del proceso de pago con Stripe */}
+        <Route path="/checkout" element={<Checkout />} />  {/* Página de checkout/pago */}
+        <Route path="/checkout/success" element={<CheckoutSuccess />} />  {/* Pago exitoso */}
+        <Route path="/checkout/cancel" element={<CheckoutCancel />} />  {/* Pago cancelado */}
+        
       </Route>
     )
 );

@@ -4,12 +4,18 @@ import { Navbar } from "../components/Navbar"
 import { Footer } from "../components/Footer"
 import { Login } from "../pages/Login"
 
-// Base component that maintains the navbar and footer throughout the page and the scroll to top functionality.
+// Componente de layout base que mantiene navbar y footer en todas las páginas
 export const Layout = () => {
     return (
+        // Wrapper con funcionalidad de scroll automático al cambiar de página
         <ScrollToTop>
+            {/* Barra de navegación fija en la parte superior */}
             <Navbar />
-                <Outlet />
+            
+            {/* Área de contenido dinámico donde se renderizan las páginas específicas */}
+            <Outlet />
+            
+            {/* Footer fijo en la parte inferior */}
             <Footer />
         </ScrollToTop>
     )
