@@ -111,9 +111,8 @@ def handle_500_error(error):
 def handle_404_error(error):
     return jsonify({"error": "Endpoint no encontrado"}), 404
 
-# Crear tablas automáticamente en producción
-@app.before_first_request
-def create_tables():
+# Crear tablas automáticamente
+with app.app_context():
     try:
         db.create_all()
         print("✅ Tablas de base de datos creadas exitosamente")
