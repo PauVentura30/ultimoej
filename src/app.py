@@ -12,21 +12,6 @@ from flask_jwt_extended import JWTManager
 from flask_bcrypt import Bcrypt
 from datetime import timedelta
 
-# Importación segura de Stripe con manejo de errores
-try:
-    import stripe
-    from dotenv import load_dotenv
-    load_dotenv()
-    # Configurar Stripe solo si la clave secreta está disponible
-    if os.getenv('STRIPE_SECRET_KEY'):
-        stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
-        print("✅ Stripe configurado correctamente")
-    else:
-        print("⚠️ STRIPE_SECRET_KEY no encontrada en .env")
-except ImportError:
-    print("⚠️ Stripe no instalado - instalarlo con: pipenv install stripe")
-    stripe = None
-
 # Determinar entorno de ejecución (desarrollo o producción)
 ENV = "development" if os.getenv("FLASK_DEBUG") == "1" else "production"
 
@@ -49,12 +34,22 @@ CORS(app, origins=[
 # Configuración de la base de datos con soporte para PostgreSQL y SQLite
 db_url = os.getenv("DATABASE_URL")
 if db_url is not None:
-    app.config['SQLALCHEMY_DATABASE_URI'] = db_url.replace(
-        "postgres://", "postgresql://")
+    # Fix para PostgreSQL en Render/Heroku
+    if db_url.startswith("postgres://"):
+        db_url = db_url.replace("postgres://", "postgresql://", 1)
+    app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 else:
     app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:////tmp/test.db"
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Configuración adicional para producción
+if ENV == "production":
+    # Configuraciones específicas para producción
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        'pool_pre_ping': True,
+        'pool_recycle': 300,
+    }
 
 # Inicializar migraciones de base de datos
 MIGRATE = Migrate(app, db, compare_type=True)
@@ -69,19 +64,30 @@ jwt = JWTManager(app)
 bcrypt = Bcrypt(app)
 
 # Configurar panel de administración Flask-Admin
-setup_admin(app)
+try:
+    setup_admin(app)
+except Exception as e:
+    print(f"⚠️ Error configurando admin: {e}")
 
 # Configurar comandos CLI personalizados
-setup_commands(app)
+try:
+    setup_commands(app)
+except Exception as e:
+    print(f"⚠️ Error configurando comandos: {e}")
 
 # Registrar rutas principales de la API con prefijo '/api'
 app.register_blueprint(api, url_prefix='/api')
 
 # Importar y registrar rutas de Stripe de forma segura
 try:
-    from api.stripe_routes import stripe_bp
-    app.register_blueprint(stripe_bp, url_prefix='/api')
-    print("✅ Rutas de Stripe registradas correctamente")
+    # Solo importar si Stripe está disponible
+    stripe_key = os.getenv('STRIPE_SECRET_KEY')
+    if stripe_key:
+        from api.stripe_routes import stripe_bp
+        app.register_blueprint(stripe_bp, url_prefix='/api')
+        print("✅ Rutas de Stripe registradas correctamente")
+    else:
+        print("⚠️ STRIPE_SECRET_KEY no configurada, saltando rutas de Stripe")
 except ImportError as e:
     print(f"⚠️ No se pudieron cargar las rutas de Stripe: {e}")
 except Exception as e:
@@ -91,6 +97,28 @@ except Exception as e:
 @app.errorhandler(APIException)
 def handle_invalid_usage(error):
     return jsonify(error.to_dict()), error.status_code
+
+# Manejador de errores 500 para producción
+@app.errorhandler(500)
+def handle_500_error(error):
+    if ENV == "production":
+        return jsonify({"error": "Error interno del servidor"}), 500
+    else:
+        return jsonify({"error": str(error)}), 500
+
+# Manejador de errores 404
+@app.errorhandler(404)
+def handle_404_error(error):
+    return jsonify({"error": "Endpoint no encontrado"}), 404
+
+# Crear tablas automáticamente en producción
+@app.before_first_request
+def create_tables():
+    try:
+        db.create_all()
+        print("✅ Tablas de base de datos creadas exitosamente")
+    except Exception as e:
+        print(f"⚠️ Error creando tablas: {e}")
 
 # Ruta principal que genera sitemap en desarrollo o sirve index.html en producción
 @app.route('/')
@@ -108,7 +136,16 @@ def serve_any_other_file(path):
     response.cache_control.max_age = 0  # Evitar caché para desarrollo
     return response
 
+# Endpoint de salud para verificar que la app está funcionando
+@app.route('/health')
+def health_check():
+    return jsonify({
+        "status": "healthy",
+        "environment": ENV,
+        "database": "connected" if db else "disconnected"
+    })
+
 # Punto de entrada principal cuando se ejecuta directamente
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3001))
-    app.run(host='0.0.0.0', port=PORT, debug=True)
+    app.run(host='0.0.0.0', port=PORT, debug=(ENV == "development"))
