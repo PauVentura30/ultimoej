@@ -1,54 +1,122 @@
 import React from 'react';
-import useGlobalReducer from '../path/to/your/useGlobalReducer';
+import { useNavigate } from 'react-router-dom';
 
 const ProductCard = ({ product }) => {
-  // Hook para acceder al dispatcher del estado global
-  const { dispatch } = useGlobalReducer();
-  
-  // Función para agregar el producto al carrito de compras
-  const addToCart = () => {
-    dispatch({
-      type: 'add_to_cart',
-      payload: {
-        ...product,
-        quantity: 1,
-      }
-    });
+  const navigate = useNavigate();
+
+  // Función para navegar al detalle del producto
+  const handleCardClick = () => {
+    navigate(`/producto/${product.id}`);
   };
-  
+
+  // Función para agregar el producto al carrito
+  const addToCart = (e) => {
+    e.stopPropagation(); // Evita que se active el click de la card
+
+    const cartItem = {
+      id: product.id,
+      name: product.name,
+      brand: product.brand,
+      price: product.price,
+      image: product.image,
+      quantity: 1
+    };
+
+    // Obtener carrito actual del localStorage
+    const currentCart = JSON.parse(localStorage.getItem("cart")) || [];
+
+    // Verificar si el producto ya existe
+    const existingItemIndex = currentCart.findIndex(item => item.id === cartItem.id);
+
+    if (existingItemIndex > -1) {
+      // Si existe, aumentar cantidad
+      currentCart[existingItemIndex].quantity += 1;
+    } else {
+      // Si no existe, añadir nuevo item
+      currentCart.push(cartItem);
+    }
+
+    // Guardar en localStorage
+    localStorage.setItem("cart", JSON.stringify(currentCart));
+
+    alert(`✅ ${product.name} añadido al carrito`);
+  };
+
   return (
-    // Contenedor principal de la tarjeta con efectos hover
-    <div className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-      // Imagen del producto con renderizado condicional
-      {product.image && (
-        <img 
-          src={product.image} 
-          alt={product.name} 
-          className="w-full h-48 object-cover"
-        />
+    <div
+      className="card product-card border-0 shadow-sm"
+      onClick={handleCardClick}
+      style={{ cursor: 'pointer' }}
+    >
+      {/* Badge si existe */}
+      {product.badge && (
+        <span className="badge bg-danger position-absolute top-0 end-0 m-2">
+          {product.badge}
+        </span>
       )}
-      
-      // Contenido de la tarjeta con información del producto
-      <div className="p-4">
-        // Nombre del producto como título
-        <h3 className="font-medium text-lg">{product.name}</h3>
-        
-        // Descripción del producto
-        <p className="text-gray-600 text-sm mb-2">{product.description}</p>
-        
-        // Footer con precio y botón de agregar al carrito
-        <div className="flex justify-between items-center">
-          // Precio del producto destacado
-          <span className="font-bold">${product.price}</span>
-          
-          // Botón para agregar producto al carrito
+
+      {/* Imagen del producto */}
+      <div className="product-image-container">
+        {product.image && (
+          <img
+            src={product.image}
+            alt={product.name}
+            className="product-image card-img-top"
+          />
+        )}
+      </div>
+
+      {/* Contenido de la tarjeta */}
+      <div className="card-body product-body">
+        {/* Marca */}
+        {product.brand && (
+          <span className="badge bg-secondary mb-2">{product.brand}</span>
+        )}
+
+        {/* Nombre del producto */}
+        <h5 className="card-title">{product.name}</h5>
+
+        {/* Descripción */}
+        {product.description && (
+          <p className="card-text text-muted small">{product.description}</p>
+        )}
+
+        {/* Rating */}
+        {product.rating && (
+          <div className="mb-2">
+            <span className="text-warning">{"⭐".repeat(Math.round(product.rating))}</span>
+            {product.reviews_count && (
+              <span className="text-muted small ms-1">({product.reviews_count})</span>
+            )}
+          </div>
+        )}
+
+        {/* Footer con precio y botón */}
+        <div className="d-flex justify-content-between align-items-center mt-3 product-footer">
+          {/* Precio */}
+          <div>
+            {product.old_price && (
+              <span className="text-muted text-decoration-line-through small me-2">
+                ${product.old_price}
+              </span>
+            )}
+            <span className="fw-bold fs-5">${product.price}</span>
+          </div>
+
+          {/* Botón agregar al carrito */}
           <button
             onClick={addToCart}
-            className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition-colors"
+            className="btn btn-primary btn-sm"
+            disabled={product.stock === 0}
           >
-            Añadir al carrito
+            {product.stock === 0 ? 'Agotado' : 'Añadir'}
           </button>
         </div>
+
+        {/* Info de stock */}
+        {product.stock > 0 && product.stock < 10 && (
+          <p className="text-warning small mt-2 mb-0">¡Solo quedan {product.stock}!</p>
+        )}
       </div>
     </div>
   );

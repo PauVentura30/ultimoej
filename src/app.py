@@ -11,6 +11,7 @@ from api.commands import setup_commands
 from flask_jwt_extended import JWTManager
 from flask_bcrypt import Bcrypt
 from datetime import timedelta
+from api.routes_products import api_products
 
 # Determinar entorno de ejecución (desarrollo o producción)
 ENV = "development" if os.getenv("FLASK_DEBUG") == "1" else "production"
@@ -31,17 +32,11 @@ CORS(app, origins=[
     "http://localhost:3001"
 ])
 
-# Configuración de la base de datos con soporte para PostgreSQL y SQLite
-db_url = os.getenv("DATABASE_URL")
-if db_url is not None:
-    # Fix para PostgreSQL en Render/Heroku
-    if db_url.startswith("postgres://"):
-        db_url = db_url.replace("postgres://", "postgresql://", 1)
-    app.config['SQLALCHEMY_DATABASE_URI'] = db_url
-else:
-    app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:////tmp/test.db"
-
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# Configuración de la base de datos - FORZANDO SQLite
+# db_url = os.getenv("DATABASE_URL")
+# Temporalmente usando SQLite en lugar de PostgreSQL
+app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:////tmp/test.db"
+print("✅ Usando SQLite: /tmp/test.db")
 
 # Configuración adicional para producción
 if ENV == "production":
@@ -76,7 +71,7 @@ except Exception as e:
     print(f"⚠️ Error configurando comandos: {e}")
 
 # Registrar rutas principales de la API con prefijo '/api'
-app.register_blueprint(api, url_prefix='/api')
+app.register_blueprint(api_products, url_prefix='/api')
 
 # Importar y registrar rutas de Stripe de forma segura
 try:
@@ -94,11 +89,15 @@ except Exception as e:
     print(f"⚠️ Error configurando Stripe: {e}")
 
 # Manejador global de errores para APIException personalizada
+
+
 @app.errorhandler(APIException)
 def handle_invalid_usage(error):
     return jsonify(error.to_dict()), error.status_code
 
 # Manejador de errores 500 para producción
+
+
 @app.errorhandler(500)
 def handle_500_error(error):
     if ENV == "production":
@@ -107,9 +106,12 @@ def handle_500_error(error):
         return jsonify({"error": str(error)}), 500
 
 # Manejador de errores 404
+
+
 @app.errorhandler(404)
 def handle_404_error(error):
     return jsonify({"error": "Endpoint no encontrado"}), 404
+
 
 # Crear tablas automáticamente
 with app.app_context():
@@ -120,6 +122,8 @@ with app.app_context():
         print(f"⚠️ Error creando tablas: {e}")
 
 # Ruta principal que genera sitemap en desarrollo o sirve index.html en producción
+
+
 @app.route('/')
 def sitemap():
     if ENV == "development":
@@ -127,6 +131,8 @@ def sitemap():
     return send_from_directory(static_file_dir, 'index.html')
 
 # Ruta catch-all para servir archivos estáticos del frontend
+
+
 @app.route('/<path:path>', methods=['GET'])
 def serve_any_other_file(path):
     if not os.path.isfile(os.path.join(static_file_dir, path)):
@@ -136,6 +142,8 @@ def serve_any_other_file(path):
     return response
 
 # Endpoint de salud para verificar que la app está funcionando
+
+
 @app.route('/health')
 def health_check():
     return jsonify({
@@ -143,6 +151,7 @@ def health_check():
         "environment": ENV,
         "database": "connected" if db else "disconnected"
     })
+
 
 # Punto de entrada principal cuando se ejecuta directamente
 if __name__ == '__main__':
