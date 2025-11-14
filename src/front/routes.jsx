@@ -10,7 +10,7 @@ import { Single } from "./pages/Single";
 import { Login } from "./pages/Login"
 import { Private } from "./pages/Private"
 import { Register } from "./pages/Register"
-import Productos from './pages/Productos.jsx';
+import ProductosPage from './pages/ProductosPage.jsx';
 import { ProductDetail } from './pages/ProductDetail.jsx'; // ← NUEVA IMPORTACIÓN
 import { Ofertas } from './pages/Ofertas.jsx';
 import { Contacto } from './pages/Contacto.jsx';
@@ -39,7 +39,7 @@ export const router = createBrowserRouter(
       <Route path="/register" element={<Register />} />  {/* Página de registro de usuarios */}
 
       {/* Rutas del catálogo y tienda */}
-      <Route path="/productos" element={<Productos />} />  {/* Catálogo de productos */}
+      <Route path="/productos" element={<ProductosPage />} />
       <Route path="/producto/:id" element={<ProductDetail />} />  {/* ← NUEVA RUTA: Detalle de producto */}
       <Route path="/ofertas" element={<Ofertas />} />  {/* Página de ofertas especiales */}
       <Route path="/contacto" element={<Contacto />} />  {/* Formulario de contacto */}
