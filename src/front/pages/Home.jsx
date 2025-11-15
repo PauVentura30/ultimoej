@@ -1,6 +1,6 @@
 import React from 'react';
 import useGlobalReducer from '../hooks/useGlobalReducer';
-import Navbar from '../components/Navbar';
+import { Link, useNavigate } from 'react-router-dom';
 
 // Componente del banner principal hero con imagen destacada
 const HeroBanner = () => (
@@ -9,11 +9,11 @@ const HeroBanner = () => (
       <div className="row align-items-center">
         <div className="col-lg-6 mb-4 mb-lg-0">
           {/* Contenido textual del banner */}
-          <h1 className="display-4 fw-bold mb-3">Las mejores ofertas de verano</h1>
-          <p className="lead mb-4">Descubre nuestra nueva colección con hasta 50% de descuento.</p>
-          <a href="/ofertas" className="btn btn-light btn-lg px-4">
-            Comprar ahora
-          </a>
+          <h1 className="display-4 fw-bold mb-3">Las mejores zapatillas</h1>
+          <p className="lead mb-4">Descubre nuestra colección de las marcas más exclusivas.</p>
+          <Link to="/productos" className="btn btn-light btn-lg px-4">
+            Ver productos
+          </Link>
         </div>
         <div className="col-lg-6">
           {/* Imagen destacada con manejo de errores */}
@@ -35,8 +35,7 @@ const HeroBanner = () => (
 
 // Componente de productos destacados con funcionalidad de carrito
 const FeaturedProducts = () => {
-  // Hook para dispatchar acciones al estado global
-  const { dispatch } = useGlobalReducer();
+  const navigate = useNavigate();
   
   // Array de productos destacados con datos completos
   const products = [
@@ -57,7 +56,7 @@ const FeaturedProducts = () => {
       rating: 4.5,
       reviews: 86,
       image: "/img/Jordan-1.webp",
-      badge: "Oferta"
+      badge: "Popular"
     },
     {
       id: 3,
@@ -78,9 +77,14 @@ const FeaturedProducts = () => {
     }
   ];
 
+  // Función para navegar al detalle del producto
+  const handleCardClick = (productId) => {
+    navigate(`/producto/${productId}`);
+  };
+
   // Función para agregar productos al carrito con feedback visual
-  const handleAddToCart = (product) => {
-    dispatch({ type: "add_to_cart", payload: product });
+  const handleAddToCart = (e, product) => {
+    e.stopPropagation(); // Evitar que se active el click de la card
     alert(`${product.name} añadido al carrito!`);
   };
   
@@ -90,62 +94,22 @@ const FeaturedProducts = () => {
         <h2 className="fw-bold mb-2">Productos destacados</h2>
         <p className="text-muted mb-4">Descubre nuestros productos más populares</p>
         
-        {/* Estilos CSS en línea para animaciones y efectos de las tarjetas */}
-        <style>
-          {`
-            .product-card {
-              transition: transform 0.3s ease, box-shadow 0.3s ease;
-              height: 100%;
-              display: flex;
-              flex-direction: column;
-            }
-            .product-card:hover {
-              transform: translateY(-5px);
-              box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
-            }
-            .product-image-container {
-              height: 220px;
-              overflow: hidden;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              background-color: #f8f9fa;
-              border-radius: 4px 4px 0 0;
-            }
-            .product-image {
-              max-height: 100%;
-              max-width: 100%;
-              object-fit: contain;
-            }
-            .product-body {
-              display: flex;
-              flex-direction: column;
-              flex-grow: 1;
-            }
-            .product-footer {
-              margin-top: auto;
-            }
-            .badge-feature {
-              position: absolute;
-              top: 10px;
-              right: 10px;
-              z-index: 10;
-            }
-          `}
-        </style>
-        
         {/* Grid responsivo de productos */}
         <div className="row g-4">
           {products.map(product => (
             <div key={product.id} className="col-sm-6 col-md-3 mb-4">
-              <div className="card product-card border-0 shadow-sm">
+              <div 
+                className="card product-card border-0 shadow-sm"
+                onClick={() => handleCardClick(product.id)}
+                style={{ cursor: 'pointer' }}
+              >
                 <div className="position-relative">
                   {/* Badge condicional para ofertas, nuevo, etc. */}
                   {product.badge && (
                     <span className={`badge-feature badge ${
-                      product.badge === 'Oferta' ? 'bg-danger' :
+                      product.badge === 'Popular' ? 'bg-dark' :
                       product.badge === 'Nuevo' ? 'bg-success' :
-                      'bg-dark'
+                      'bg-danger'
                     }`}>
                       {product.badge}
                     </span>
@@ -190,7 +154,7 @@ const FeaturedProducts = () => {
                     </div>
                     <button 
                       className="btn btn-dark btn-sm"
-                      onClick={() => handleAddToCart(product)}
+                      onClick={(e) => handleAddToCart(e, product)}
                     >
                       Añadir
                     </button>

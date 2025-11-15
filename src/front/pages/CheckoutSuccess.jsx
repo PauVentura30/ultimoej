@@ -1,84 +1,99 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import useGlobalReducer from '../hooks/useGlobalReducer';
 
 export function CheckoutSuccess() {
-  // Hooks para navegación, parámetros URL y autenticación
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
+  const { store, dispatch } = useGlobalReducer();
   
-  // Estados para manejar los detalles del pedido y carga
-  const [orderDetails, setOrderDetails] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [orderCreated, setOrderCreated] = useState(false);
+  const [orderNumber, setOrderNumber] = useState('');
 
-  // Extrae el ID del Payment Intent desde los parámetros de la URL
   const paymentIntentId = searchParams.get('payment_intent');
 
-  // Función para obtener el nombre del usuario desde localStorage con debug completo
   const getUserName = () => {
     try {
-      console.log('🔍 DEBUG: Obteniendo nombre de usuario...');
-      
-      // Revisar localStorage directamente para datos del usuario
       const userData = localStorage.getItem('user_data');
-      console.log('📦 localStorage user_data:', userData);
-      
       if (userData) {
         const parsed = JSON.parse(userData);
-        console.log('📋 Datos parseados:', parsed);
-        console.log('👤 Nombre encontrado:', parsed.name);
         return parsed.name || 'Cliente';
       }
-      
-      console.log('❌ No hay user_data en localStorage');
       return 'Cliente';
     } catch (error) {
-      console.error('💥 Error obteniendo nombre de usuario:', error);
+      console.error('Error obteniendo nombre de usuario:', error);
       return 'Cliente';
     }
   };
 
-  // Efecto para cargar detalles del pedido al montar el componente
   useEffect(() => {
-    // Debug detallado del estado de autenticación y localStorage
-    console.log('🔍 DEBUG CheckoutSuccess - useAuth user:', user);
-    console.log('🔍 DEBUG CheckoutSuccess - localStorage completo:', {
-      auth_token: localStorage.getItem('auth_token') ? 'Presente' : 'Ausente',
-      user_data: localStorage.getItem('user_data'),
-      user_email: localStorage.getItem('user_email')
-    });
+    // Obtener el carrito desde localStorage (porque después de pagar puede que store esté vacío)
+    const savedCart = localStorage.getItem('cart');
+    const cartItems = savedCart ? JSON.parse(savedCart) : [];
     
-    if (paymentIntentId) {
-      fetchOrderDetails();
-    } else {
-      setLoading(false);
-    }
-  }, [paymentIntentId]);
+    console.log('🛒 Carrito recuperado:', cartItems);
 
-  // Función para obtener los detalles del pedido desde el backend
-  const fetchOrderDetails = async () => {
+    // Solo crear el pedido una vez y si hay items
+    if (!orderCreated && cartItems.length > 0) {
+      createOrder(cartItems);
+    }
+  }, []);
+
+  const createOrder = (cartItems) => {
     try {
-      const token = localStorage.getItem('auth_token');
+      console.log('📦 Creando pedido con items:', cartItems);
+
+      // Generar número de pedido único
+      const orderNum = `ORD-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
       
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/order-details/${paymentIntentId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      // Calcular totales
+      const subtotal = cartItems.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
+      const impuestos = subtotal * 0.21;
+      const envio = subtotal > 150 ? 0 : 4.99;
+      const total = subtotal + impuestos + envio;
+
+      // Crear objeto del pedido
+      const newOrder = {
+        id: orderNum,
+        date: new Date().toISOString().split('T')[0],
+        deliveryDate: null,
+        status: "Procesando",
+        total: parseFloat(total.toFixed(2)),
+        canReturn: true, // Permitir devolución desde el inicio
+        items: cartItems.map(item => ({
+          name: item.name,
+          quantity: item.quantity || 1,
+          price: item.price,
+          image: item.image,
+          size: item.size || null,
+          color: item.color || null,
+          brand: item.brand || null
+        }))
+      };
+
+      console.log('✅ Nuevo pedido creado:', newOrder);
+
+      // Obtener pedidos existentes del usuario
+      const existingOrders = JSON.parse(localStorage.getItem('user_orders') || '[]');
       
-      if (response.ok) {
-        const data = await response.json();
-        setOrderDetails(data);
-      } else {
-        const errorData = await response.text();
-        console.error('❌ Error response:', errorData);
-      }
+      // Añadir el nuevo pedido al inicio
+      const updatedOrders = [newOrder, ...existingOrders];
+      
+      // Guardar en localStorage
+      localStorage.setItem('user_orders', JSON.stringify(updatedOrders));
+      
+      // Vaciar el carrito
+      dispatch({ type: 'clear_cart' });
+      localStorage.setItem('cart', JSON.stringify([]));
+      
+      setOrderNumber(orderNum);
+      setOrderCreated(true);
+      
+      console.log('✅ Pedido guardado y carrito vaciado');
     } catch (error) {
-      console.error('💥 Error fetching order details:', error);
-    } finally {
-      setLoading(false);
+      console.error('❌ Error creando pedido:', error);
     }
   };
 
@@ -88,73 +103,57 @@ export function CheckoutSuccess() {
         <div className="col-md-8">
           <div className="card border-0 shadow-sm">
             <div className="card-body text-center p-5">
-              {/* Estado de carga mientras se obtienen los detalles */}
-              {loading ? (
-                <div>
-                  <div className="spinner-border text-success mb-3" role="status">
-                    <span className="visually-hidden">Cargando...</span>
-                  </div>
-                  <h4>Verificando tu pedido...</h4>
-                </div>
-              ) : (
-                <>
-                  {/* Icono de éxito */}
-                  <div className="text-success mb-4">
-                    <i className="bi bi-check-circle-fill" style={{fontSize: '4rem'}}></i>
-                  </div>
-                  
-                  {/* Mensaje principal de confirmación */}
-                  <h1 className="text-success mb-3">¡Pago realizado con éxito!</h1>
-                  <p className="lead mb-4">
-                    Gracias por tu compra, {getUserName()}. Tu pedido ha sido procesado correctamente.
-                  </p>
+              {/* Icono de éxito */}
+              <div className="text-success mb-4">
+                <i className="bi bi-check-circle-fill" style={{fontSize: '4rem'}}></i>
+              </div>
+              
+              {/* Mensaje principal de confirmación */}
+              <h1 className="text-success mb-3">¡Pago realizado con éxito!</h1>
+              <p className="lead mb-4">
+                Gracias por tu compra, {getUserName()}. Tu pedido ha sido procesado correctamente.
+              </p>
 
-                  {/* Detalles del pedido si están disponibles */}
-                  {orderDetails && (
-                    <div className="bg-light rounded p-4 mb-4">
-                      <div className="row text-start">
-                        <div className="col-md-6">
-                          <h6 className="fw-bold">Número de pedido:</h6>
-                          <p className="text-muted">#{orderDetails.order_number}</p>
-                        </div>
-                        <div className="col-md-6">
-                          <h6 className="fw-bold">Total pagado:</h6>
-                          <p className="text-muted fs-5 fw-bold">€{orderDetails.total}</p>
-                        </div>
-                      </div>
+              {/* Detalles del pedido */}
+              {orderNumber && (
+                <div className="bg-light rounded p-4 mb-4">
+                  <div className="row text-start">
+                    <div className="col-12 text-center">
+                      <h6 className="fw-bold">Número de pedido:</h6>
+                      <p className="text-muted fs-5">#{orderNumber}</p>
                     </div>
-                  )}
-
-                  {/* Información sobre los siguientes pasos */}
-                  <div className="alert alert-info">
-                    <i className="bi bi-info-circle me-2"></i>
-                    <strong>¿Qué sigue?</strong>
-                    <ul className="list-unstyled mt-2 mb-0">
-                      <li>• Recibirás un email de confirmación en breve</li>
-                      <li>• Procesaremos tu pedido en 1-2 días hábiles</li>
-                      <li>• Te enviaremos información de seguimiento</li>
-                    </ul>
                   </div>
-
-                  {/* Botones de navegación post-compra */}
-                  <div className="d-flex gap-3 justify-content-center mt-4">
-                    <button 
-                      className="btn btn-dark btn-lg"
-                      onClick={() => navigate('/private')}
-                    >
-                      <i className="bi bi-person me-2"></i>
-                      Ver mis pedidos
-                    </button>
-                    <button 
-                      className="btn btn-outline-dark btn-lg"
-                      onClick={() => navigate('/productos')}
-                    >
-                      <i className="bi bi-arrow-left me-2"></i>
-                      Seguir comprando
-                    </button>
-                  </div>
-                </>
+                </div>
               )}
+
+              {/* Información sobre los siguientes pasos */}
+              <div className="alert alert-info">
+                <i className="bi bi-info-circle me-2"></i>
+                <strong>¿Qué sigue?</strong>
+                <ul className="list-unstyled mt-2 mb-0 text-start">
+                  <li>• Recibirás un email de confirmación en breve</li>
+                  <li>• Procesaremos tu pedido en 1-2 días hábiles</li>
+                  <li>• Te enviaremos información de seguimiento</li>
+                </ul>
+              </div>
+
+              {/* Botones de navegación post-compra */}
+              <div className="d-flex gap-3 justify-content-center mt-4">
+                <button 
+                  className="btn btn-dark btn-lg"
+                  onClick={() => navigate('/private')}
+                >
+                  <i className="bi bi-person me-2"></i>
+                  Ver mis pedidos
+                </button>
+                <button 
+                  className="btn btn-outline-dark btn-lg"
+                  onClick={() => navigate('/productos')}
+                >
+                  <i className="bi bi-arrow-left me-2"></i>
+                  Seguir comprando
+                </button>
+              </div>
             </div>
           </div>
         </div>

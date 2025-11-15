@@ -11,8 +11,7 @@ import { Login } from "./pages/Login"
 import { Private } from "./pages/Private"
 import { Register } from "./pages/Register"
 import ProductosPage from './pages/ProductosPage.jsx';
-import { ProductDetail } from './pages/ProductDetail.jsx'; // ← NUEVA IMPORTACIÓN
-import { Ofertas } from './pages/Ofertas.jsx';
+import { ProductDetail } from './pages/ProductDetail.jsx';
 import { Contacto } from './pages/Contacto.jsx';
 import { Cesta } from './pages/Cesta.jsx';
 import TerminosCondiciones from './pages/TerminosCondiciones.jsx';
@@ -20,6 +19,7 @@ import PoliticaPrivacidad from './pages/PoliticaPrivacidad.jsx';
 import { Checkout } from './pages/Checkout.jsx';
 import { CheckoutSuccess } from './pages/CheckoutSuccess.jsx';
 import { CheckoutCancel } from './pages/CheckoutCancel.jsx';
+import { Devoluciones } from './pages/Devoluciones.jsx';
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
@@ -32,27 +32,27 @@ export const router = createBrowserRouter(
     <Route path="/" element={<Layout />} errorElement={<h1>Not found!</h1>} >
 
       {/* Rutas principales de la aplicación */}
-      <Route path="/" element={<Home />} />  {/* Página principal/home */}
-      <Route path="/login" element={<Login />} />  {/* Página de inicio de sesión */}
-      <Route path="/private" element={<Private />} />  {/* Página protegida */}
-      <Route path="/single/:theId" element={<Single />} />  {/* Ruta dinámica con parámetro */}
-      <Route path="/register" element={<Register />} />  {/* Página de registro de usuarios */}
+      <Route path="/" element={<Home />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/private" element={<Private />} />
+      <Route path="/single/:theId" element={<Single />} />
+      <Route path="/register" element={<Register />} />
 
       {/* Rutas del catálogo y tienda */}
       <Route path="/productos" element={<ProductosPage />} />
-      <Route path="/producto/:id" element={<ProductDetail />} />  {/* ← NUEVA RUTA: Detalle de producto */}
-      <Route path="/ofertas" element={<Ofertas />} />  {/* Página de ofertas especiales */}
-      <Route path="/contacto" element={<Contacto />} />  {/* Formulario de contacto */}
-      <Route path="/cesta" element={<Cesta />} />  {/* Carrito de compras */}
+      <Route path="/producto/:id" element={<ProductDetail />} />
+      <Route path="/contacto" element={<Contacto />} />
+      <Route path="/cesta" element={<Cesta />} />
 
       {/* Rutas legales */}
-      <Route path="/terminos-condiciones" element={<TerminosCondiciones />} />  {/* Términos y condiciones */}
-      <Route path="/politica-privacidad" element={<PoliticaPrivacidad />} />  {/* Política de privacidad */}
+      <Route path="/terminos-condiciones" element={<TerminosCondiciones />} />
+      <Route path="/politica-privacidad" element={<PoliticaPrivacidad />} />
+      <Route path="/devoluciones" element={<Devoluciones />} />
 
       {/* Rutas del proceso de pago con Stripe */}
-      <Route path="/checkout" element={<Checkout />} />  {/* Página de checkout/pago */}
-      <Route path="/checkout/success" element={<CheckoutSuccess />} />  {/* Pago exitoso */}
-      <Route path="/checkout/cancel" element={<CheckoutCancel />} />  {/* Pago cancelado */}
+      <Route path="/checkout" element={<Checkout />} />
+      <Route path="/checkout/success" element={<CheckoutSuccess />} />
+      <Route path="/checkout/cancel" element={<CheckoutCancel />} />
 
     </Route>
   )

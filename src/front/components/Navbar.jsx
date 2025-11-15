@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import useGlobalReducer from '../hooks/useGlobalReducer';
 import { useAuth } from '../hooks/useAuth';
 
@@ -69,7 +69,7 @@ export function Navbar() {
       <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
         <div className="container">
           {/* Logo/marca de la tienda */}
-          <a className="navbar-brand fw-bold text-dark" href="/">BambasShop</a>
+          <Link className="navbar-brand fw-bold text-dark" to="/">BambasShop</Link>
 
           {/* Botón hamburguesa para menú móvil */}
           <button
@@ -85,16 +85,13 @@ export function Navbar() {
             {/* Enlaces de navegación principales */}
             <ul className="navbar-nav me-auto mb-2 mb-lg-0">
               <li className="nav-item">
-                <a className="nav-link active" href="/">Inicio</a>
+                <Link className="nav-link" to="/">Inicio</Link>
               </li>
               <li className="nav-item">
-                <a className="nav-link" href="/productos">Productos</a>
+                <Link className="nav-link" to="/productos">Productos</Link>
               </li>
               <li className="nav-item">
-                <a className="nav-link" href="/ofertas">Ofertas</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link" href="/contacto">Contacto</a>
+                <Link className="nav-link" to="/contacto">Contacto</Link>
               </li>
             </ul>
 
@@ -122,18 +119,18 @@ export function Navbar() {
             {/* Sección de iconos de usuario y carrito */}
             <div className="d-flex align-items-center">
               {/* Icono del carrito con badge de conteo dinámico */}
-              <a href="/cesta" className="text-dark position-relative me-3">
+              <Link to="/cesta" className="text-dark position-relative me-3">
                 <i className="bi bi-cart3 fs-5"></i>
                 {cartItemsCount > 0 && (
                   <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark">
                     {cartItemsCount}
                   </span>
                 )}
-              </a>
+              </Link>
 
               {/* Icono de usuario con navegación condicional según estado de login */}
-              <a
-                href={isLoggedIn ? "/private" : "/register"}
+              <Link
+                to={isLoggedIn ? "/private" : "/register"}
                 className="text-dark d-flex align-items-center text-decoration-none"
                 title={isLoggedIn ? "Mi cuenta" : "Registrarse"}
               >
@@ -145,7 +142,7 @@ export function Navbar() {
                 ) : (
                   <span className="d-none d-sm-inline small">Entrar</span>
                 )}
-              </a>
+              </Link>
             </div>
           </div>
         </div>

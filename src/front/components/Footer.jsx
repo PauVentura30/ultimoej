@@ -59,9 +59,6 @@ export const Footer = () => (
                 <Link to="/productos" className="text-white-50 text-decoration-none">Productos</Link>
               </li>
               <li className="mb-1">
-                <Link to="/ofertas" className="text-white-50 text-decoration-none">Ofertas</Link>
-              </li>
-              <li className="mb-1">
                 <Link to="/cesta" className="text-white-50 text-decoration-none">Carrito</Link>
               </li>
             </ul>
@@ -75,13 +72,13 @@ export const Footer = () => (
                 <Link to="/contacto" className="text-white-50 text-decoration-none">Contacto</Link>
               </li>
               <li className="mb-1">
+                <Link to="/devoluciones" className="text-white-50 text-decoration-none">Devoluciones</Link>
+              </li>
+              <li className="mb-1">
                 <Link to="/terminos-condiciones" className="text-white-50 text-decoration-none">Términos y condiciones</Link>
               </li>
               <li className="mb-1">
                 <Link to="/politica-privacidad" className="text-white-50 text-decoration-none">Política de privacidad</Link>
-              </li>
-              <li className="mb-1">
-                <Link to="/devoluciones" className="text-white-50 text-decoration-none">Devoluciones</Link>
               </li>
             </ul>
           </div>

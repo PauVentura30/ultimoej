@@ -1,8 +1,11 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import useGlobalReducer from '../hooks/useGlobalReducer';
+import "../styles/productos.css";
 
 const ProductCard = ({ product }) => {
   const navigate = useNavigate();
+  const { dispatch } = useGlobalReducer();
 
   // Función para navegar al detalle del producto
   const handleCardClick = () => {
@@ -38,6 +41,9 @@ const ProductCard = ({ product }) => {
 
     // Guardar en localStorage
     localStorage.setItem("cart", JSON.stringify(currentCart));
+
+    // Actualizar estado global
+    dispatch({ type: "add_to_cart", payload: cartItem });
 
     alert(`✅ ${product.name} añadido al carrito`);
   };

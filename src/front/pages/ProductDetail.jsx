@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import "../../styles/productDetail.css";
+import "../styles/productDetail.css";
 
 export const ProductDetail = () => {
   const { id } = useParams();
@@ -19,7 +19,7 @@ export const ProductDetail = () => {
     const fetchProducto = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${process.env.BACKEND_URL}/api/products/${id}`);
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/products/${id}`);
         
         if (!response.ok) {
           throw new Error('Producto no encontrado');
@@ -30,9 +30,18 @@ export const ProductDetail = () => {
         if (data.success) {
           setProducto(data.product);
           setMainImage(data.product.image);
-          if (data.product.colors && data.product.colors.length > 0) {
-            setSelectedColor(data.product.colors[0]);
+          
+          // Parsear colores si es un string separado por comas
+          const colors = typeof data.product.colors === 'string' 
+            ? data.product.colors.split(',').map(c => c.trim())
+            : data.product.colors || [];
+          
+          if (colors.length > 0) {
+            setSelectedColor(colors[0]);
           }
+          
+          // Guardar colores parseados en el producto
+          setProducto(prev => ({ ...prev, colors }));
         } else {
           throw new Error('Error al cargar el producto');
         }
@@ -191,10 +200,10 @@ export const ProductDetail = () => {
           {/* Rating */}
           <div className="product-rating">
             <div className="stars">
-              {"⭐".repeat(Math.round(producto.rating))}
-              <span className="rating-number">({producto.rating})</span>
+              {"⭐".repeat(Math.round(producto.rating || 0))}
+              <span className="rating-number">({producto.rating || 0})</span>
             </div>
-            <span className="reviews-count">{producto.reviews_count} valoraciones</span>
+            <span className="reviews-count">{producto.reviews_count || 0} valoraciones</span>
           </div>
 
           {/* Precio */}

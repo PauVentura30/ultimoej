@@ -26,10 +26,13 @@ app.url_map.strict_slashes = False
 
 # Configurar CORS para permitir peticiones desde el frontend
 CORS(app, origins=[
+    "https://urban-space-cod-r4p4wp7qx6662xvgq-3002.app.github.dev",
+    "https://urban-space-cod-r4p4wp7qx6662xvgq-3001.app.github.dev",
     "https://ubiquitous-space-doodle-4jwj6wq5rw9q26jp-3000.app.github.dev",
     "https://ubiquitous-space-doodle-4jwj6wq5rw9q26jp-3001.app.github.dev",
     "http://localhost:3000",
-    "http://localhost:3001"
+    "http://localhost:3001",
+    "http://localhost:3002"
 ])
 
 # Configuración de la base de datos - FORZANDO SQLite
@@ -71,6 +74,7 @@ except Exception as e:
     print(f"⚠️ Error configurando comandos: {e}")
 
 # Registrar rutas principales de la API con prefijo '/api'
+app.register_blueprint(api, url_prefix="/api")
 app.register_blueprint(api_products, url_prefix='/api')
 
 # Importar y registrar rutas de Stripe de forma segura

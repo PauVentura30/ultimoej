@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import ProductCard from "../components/ProductCard";
-import "../../styles/productos.css";
+import "../styles/productos.css";
 
-const Productos = () => {
+const ProductosPage = () => {
   console.log('🔴 PRODUCTOS.JSX SE ESTÁ RENDERIZANDO');
 
   // Estado para almacenar los productos desde la API
@@ -15,7 +15,7 @@ const Productos = () => {
     const fetchProductos = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${process.env.BACKEND_URL}/api/products`);
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/products`);
 
         if (!response.ok) {
           throw new Error('Error al cargar productos');
