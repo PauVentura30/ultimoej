@@ -9,8 +9,8 @@ api_products = Blueprint('api_products', __name__)
 def get_all_products():
     """Obtener todos los productos"""
     try:
-        # Query todos los productos disponibles
-        products = Product.query.filter_by(is_available=True).all()
+        # Query todos los productos
+        products = Product.query.all()
         
         # Serializar productos
         products_list = [product.serialize() for product in products]
@@ -56,7 +56,8 @@ def get_product(product_id):
 def get_featured_products():
     """Obtener productos destacados"""
     try:
-        featured = Product.query.filter_by(is_featured=True, is_available=True).all()
+        # Filtrar por productos que tengan badge
+        featured = Product.query.filter(Product.badge.isnot(None)).all()
         
         return jsonify({
             "success": True,
@@ -75,7 +76,8 @@ def get_featured_products():
 def get_new_products():
     """Obtener productos nuevos"""
     try:
-        new_products = Product.query.filter_by(is_new=True, is_available=True).limit(8).all()
+        # Filtrar por productos con badge "Nuevo"
+        new_products = Product.query.filter_by(badge="Nuevo").limit(8).all()
         
         return jsonify({
             "success": True,
@@ -94,7 +96,7 @@ def get_new_products():
 def get_products_by_category(category):
     """Obtener productos por categoría"""
     try:
-        products = Product.query.filter_by(category=category, is_available=True).all()
+        products = Product.query.filter_by(category=category).all()
         
         return jsonify({
             "success": True,
@@ -127,8 +129,7 @@ def search_products():
             db.or_(
                 Product.name.ilike(f'%{query}%'),
                 Product.brand.ilike(f'%{query}%')
-            ),
-            Product.is_available == True
+            )
         ).all()
         
         return jsonify({

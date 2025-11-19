@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import useGlobalReducer from '../hooks/useGlobalReducer';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -8,23 +8,23 @@ const HeroBanner = () => (
     <div className="container">
       <div className="row align-items-center">
         <div className="col-lg-6 mb-4 mb-lg-0">
-          {/* Contenido textual del banner */}
-          <h1 className="display-4 fw-bold mb-3">Las mejores zapatillas</h1>
-          <p className="lead mb-4">Descubre nuestra colección de las marcas más exclusivas.</p>
+          <h1 className="display-4 fw-bold mb-3" style={{ color: 'white' }}>
+            Las mejores zapatillas Nike
+          </h1>
+          <p className="lead mb-4" style={{ color: 'white' }}>
+            Descubre nuestra colección exclusiva de las zapatillas más icónicas.
+          </p>
           <Link to="/productos" className="btn btn-light btn-lg px-4">
-            Ver productos
+            Ver todos los productos
           </Link>
         </div>
         <div className="col-lg-6">
-          {/* Imagen destacada con manejo de errores */}
-          <div className="card bg-white p-2 shadow-lg border-0 rounded-3 transform-rotate-3">
+          <div className="card bg-white p-2 shadow-lg border-0 rounded-3">
             <img 
-              src="/img/lilnas.webp" 
+              src="/img/bambasshop-homepicture.jpg" 
               className="img-fluid rounded" 
-              alt="Productos destacados"
-              onError={(e) => {
-                e.target.src = "https://via.placeholder.com/400x300/cccccc/333333?text=Imagen+no+encontrada";
-              }}
+              alt="BambasShop Collection"
+              style={{ maxHeight: '400px', objectFit: 'cover' }}
             />
           </div>
         </div>
@@ -33,129 +33,147 @@ const HeroBanner = () => (
   </div>
 );
 
-// Componente de productos destacados con funcionalidad de carrito
+// Componente de productos destacados
 const FeaturedProducts = () => {
   const navigate = useNavigate();
-  
-  // Array de productos destacados con datos completos
-  const products = [
-    {
-      id: 1,
-      name: "Adidas Superstar",
-      price: 89.99,
-      rating: 4.8,
-      reviews: 124,
-      image: "/img/adidas-superstar.webp",
-      badge: "Nuevo"
-    },
-    {
-      id: 2,
-      name: "Nike Air Jordan 1",
-      price: 189.99,
-      oldPrice: 249.99,
-      rating: 4.5,
-      reviews: 86,
-      image: "/img/Jordan-1.webp",
-      badge: "Popular"
-    },
-    {
-      id: 3,
-      name: "Converse Chuck Taylor All Star",
-      price: 69.99,
-      rating: 4.2,
-      reviews: 52,
-      image: "/img/converseallstar.webp"
-    },
-    {
-      id: 4,
-      name: "Nike Air Force 1",
-      price: 109.99,
-      rating: 4.7,
-      reviews: 94,
-      image: "/img/Nike-Air-Force-One.webp",
-      badge: "Popular"
-    }
-  ];
+  const { dispatch } = useGlobalReducer();
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Función para navegar al detalle del producto
+  useEffect(() => {
+    const fetchFeaturedProducts = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/products`);
+        const data = await response.json();
+        
+        if (data.success) {
+          setProducts(data.products.slice(0, 4));
+        }
+      } catch (error) {
+        console.error('Error cargando productos destacados:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFeaturedProducts();
+  }, []);
+
   const handleCardClick = (productId) => {
     navigate(`/producto/${productId}`);
   };
 
-  // Función para agregar productos al carrito con feedback visual
   const handleAddToCart = (e, product) => {
-    e.stopPropagation(); // Evitar que se active el click de la card
-    alert(`${product.name} añadido al carrito!`);
+    e.stopPropagation();
+    
+    const cartItem = {
+      id: product.id,
+      name: product.name,
+      brand: product.brand,
+      price: product.price,
+      image: product.image,
+      quantity: 1
+    };
+
+    const currentCart = JSON.parse(localStorage.getItem("cart")) || [];
+    const existingItemIndex = currentCart.findIndex(item => item.id === cartItem.id);
+    
+    if (existingItemIndex > -1) {
+      currentCart[existingItemIndex].quantity += 1;
+    } else {
+      currentCart.push(cartItem);
+    }
+    
+    localStorage.setItem("cart", JSON.stringify(currentCart));
+    dispatch({ type: "SET_CART", payload: currentCart });
+    
+    alert(`✅ ${product.name} añadido al carrito!`);
+  };
+
+  const renderStars = (rating) => {
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 !== 0;
+    const stars = [];
+
+    for (let i = 0; i < fullStars; i++) {
+      stars.push(<i key={`full-${i}`} className="bi bi-star-fill"></i>);
+    }
+    if (hasHalfStar) {
+      stars.push(<i key="half" className="bi bi-star-half"></i>);
+    }
+    while (stars.length < 5) {
+      stars.push(<i key={`empty-${stars.length}`} className="bi bi-star"></i>);
+    }
+    
+    return stars;
   };
   
+  if (loading) {
+    return (
+      <section className="py-5">
+        <div className="container">
+          <div className="text-center">
+            <div className="spinner-border text-dark" role="status">
+              <span className="visually-hidden">Cargando...</span>
+            </div>
+            <p className="mt-3">Cargando productos destacados...</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="py-5">
       <div className="container">
         <h2 className="fw-bold mb-2">Productos destacados</h2>
         <p className="text-muted mb-4">Descubre nuestros productos más populares</p>
         
-        {/* Grid responsivo de productos */}
         <div className="row g-4">
           {products.map(product => (
-            <div key={product.id} className="col-sm-6 col-md-3 mb-4">
+            <div key={product.id} className="col-sm-6 col-md-3">
               <div 
-                className="card product-card border-0 shadow-sm"
+                className="card product-card border-0 h-100"
                 onClick={() => handleCardClick(product.id)}
-                style={{ cursor: 'pointer' }}
               >
-                <div className="position-relative">
-                  {/* Badge condicional para ofertas, nuevo, etc. */}
+                <div className="position-relative product-image-container">
                   {product.badge && (
-                    <span className={`badge-feature badge ${
-                      product.badge === 'Popular' ? 'bg-dark' :
-                      product.badge === 'Nuevo' ? 'bg-success' :
-                      'bg-danger'
+                    <span className={`badge-feature ${
+                      product.badge === 'Popular' || product.badge === 'Nuevo' ? 'bg-dark' :
+                      product.badge === 'Oferta' ? 'bg-danger' :
+                      'bg-success'
                     }`}>
                       {product.badge}
                     </span>
                   )}
-                  {/* Contenedor de imagen con fallback */}
-                  <div className="product-image-container">
-                    <img 
-                      src={product.image} 
-                      className="product-image" 
-                      alt={product.name}
-                      onError={(e) => {
-                        e.target.src = `https://via.placeholder.com/300x200/cccccc/333333?text=${encodeURIComponent(product.name)}`;
-                      }}
-                    />
-                  </div>
+                  <img 
+                    src={product.image} 
+                    className="product-image" 
+                    alt={product.name}
+                    onError={(e) => {
+                      e.target.src = `https://via.placeholder.com/300x200/cccccc/333333?text=${encodeURIComponent(product.name)}`;
+                    }}
+                  />
                 </div>
                 
-                {/* Cuerpo de la tarjeta con información del producto */}
                 <div className="card-body product-body">
-                  <h5 className="card-title text-truncate" title={product.name}>{product.name}</h5>
+                  <p className="text-muted small mb-1">{product.brand}</p>
+                  <h6 className="card-title mb-2">{product.name}</h6>
                   
-                  {/* Sistema de calificación con estrellas */}
-                  <div className="mb-2 d-flex align-items-center">
-                    <div className="text-warning me-1">
-                      <i className="bi bi-star-fill"></i>
-                      <i className="bi bi-star-fill"></i>
-                      <i className="bi bi-star-fill"></i>
-                      <i className="bi bi-star-fill"></i>
-                      <i className="bi bi-star"></i>
+                  <div className="d-flex align-items-center mb-2">
+                    <div className="text-warning me-2">
+                      {renderStars(product.rating)}
                     </div>
-                    <small className="text-muted">{product.rating} ({product.reviews})</small>
+                    <small className="text-muted">({product.reviews_count})</small>
                   </div>
                   
-                  {/* Footer con precios y botón de agregar al carrito */}
-                  <div className="d-flex justify-content-between align-items-center product-footer">
-                    <div>
-                      {/* Precio anterior tachado si existe */}
-                      {product.oldPrice && (
-                        <small className="text-decoration-line-through text-muted me-2">${product.oldPrice.toFixed(2)}</small>
-                      )}
-                      <span className="fw-bold">${product.price.toFixed(2)}</span>
-                    </div>
+                  <div className="product-footer">
+                    <span className="fw-bold">${product.price.toFixed(2)}</span>
                     <button 
                       className="btn btn-dark btn-sm"
                       onClick={(e) => handleAddToCart(e, product)}
                     >
+                      <i className="bi bi-cart-plus me-1"></i>
                       Añadir
                     </button>
                   </div>
@@ -164,12 +182,19 @@ const FeaturedProducts = () => {
             </div>
           ))}
         </div>
+
+        <div className="text-center mt-4">
+          <Link to="/productos" className="btn btn-outline-dark btn-lg">
+            Ver toda la colección
+            <i className="bi bi-arrow-right ms-2"></i>
+          </Link>
+        </div>
       </div>
     </section>
   );
 };
 
-// Componente principal que compone la página home completa
+// Componente principal
 export function Home() {
   return (
     <>

@@ -1,7 +1,7 @@
 // Función para cargar el carrito desde localStorage al inicializar
 const loadCartFromStorage = () => {
   try {
-    const savedCart = localStorage.getItem('bambas_cart');
+    const savedCart = localStorage.getItem('cart');
     return savedCart ? JSON.parse(savedCart) : [];
   } catch (error) {
     console.error('Error cargando carrito desde localStorage:', error);
@@ -12,7 +12,7 @@ const loadCartFromStorage = () => {
 // Función para persistir el carrito en localStorage
 const saveCartToStorage = (cart) => {
   try {
-    localStorage.setItem('bambas_cart', JSON.stringify(cart));
+    localStorage.setItem('cart', JSON.stringify(cart));
   } catch (error) {
     console.error('Error guardando carrito en localStorage:', error);
   }
@@ -140,10 +140,16 @@ export default function storeReducer(store, action = {}) {
       saveCartToStorage(newCart);
       return { ...store, cart: newCart };
     
+    // Acción para establecer todo el carrito (reemplaza el carrito completo)
+    case "SET_CART":
+      console.log("🔄 Estableciendo carrito completo:", action.payload);
+      saveCartToStorage(action.payload);
+      return { ...store, cart: action.payload };
+    
     // Acción para eliminar productos del carrito
     case "remove_from_cart":
       console.log("🗑️ Removiendo del carrito:", action.payload);
-      const filteredCart = store.cart.filter(item => item.id !== action.payload);
+      const filteredCart = store.cart.filter(item => !(item.id === action.payload.id && item.size === action.payload.size));
       console.log("🗑️ Carrito después de remover:", filteredCart);
       saveCartToStorage(filteredCart);
       return { ...store, cart: filteredCart };
@@ -154,11 +160,11 @@ export default function storeReducer(store, action = {}) {
       let updatedCart;
       if (action.payload.quantity <= 0) {
         // Elimina el producto si la cantidad es 0 o menor
-        updatedCart = store.cart.filter(item => item.id !== action.payload.id);
+        updatedCart = store.cart.filter(item => !(item.id === action.payload.id && item.size === action.payload.size));
       } else {
         // Actualiza la cantidad del producto
         updatedCart = store.cart.map(item => 
-          item.id === action.payload.id 
+          item.id === action.payload.id && item.size === action.payload.size
             ? {...item, quantity: action.payload.quantity} 
             : item
         );

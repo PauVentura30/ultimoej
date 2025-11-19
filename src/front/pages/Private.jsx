@@ -480,8 +480,18 @@ export const Private = () => {
                                                             />
                                                             <div className="flex-grow-1">
                                                                 <div className="fw-medium">{item.name}</div>
-                                                                <small className="text-muted">Cantidad: {item.quantity}</small>
-                                                                {item.size && <small className="text-muted"> | Talla: {item.size}</small>}
+                                                                <div className="d-flex align-items-center gap-2 flex-wrap mt-1">
+                                                                    <small className="text-muted">
+                                                                        <i className="bi bi-box me-1"></i>
+                                                                        Cantidad: {item.quantity}
+                                                                    </small>
+                                                                    {item.size && (
+                                                                        <span className="badge bg-secondary">
+                                                                            <i className="bi bi-rulers me-1"></i>
+                                                                            Talla {item.size}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
                                                             </div>
                                                             <div className="fw-bold">${item.price.toFixed(2)}</div>
                                                         </div>
@@ -576,7 +586,15 @@ export const Private = () => {
                                                             />
                                                             <div className="flex-grow-1">
                                                                 <div className="fw-medium">{item.name}</div>
-                                                                <small className="text-muted">Cantidad: {item.quantity}</small>
+                                                                <div className="d-flex align-items-center gap-2 mt-1">
+                                                                    <small className="text-muted">Cantidad: {item.quantity}</small>
+                                                                    {item.size && (
+                                                                        <span className="badge bg-secondary">
+                                                                            <i className="bi bi-rulers me-1"></i>
+                                                                            Talla {item.size}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
                                                             </div>
                                                             <div className="fw-bold">${item.price.toFixed(2)}</div>
                                                         </div>
@@ -654,9 +672,16 @@ export const Private = () => {
                                                         />
                                                         <div className="flex-grow-1">
                                                             <div className="fw-medium">{item.name}</div>
-                                                            <small className="text-muted">
-                                                                Cantidad: {item.quantity} | Precio: ${item.price.toFixed(2)}
-                                                            </small>
+                                                            <div className="d-flex align-items-center gap-2 mt-1">
+                                                                <small className="text-muted">
+                                                                    Cantidad: {item.quantity} | Precio: ${item.price.toFixed(2)}
+                                                                </small>
+                                                                {item.size && (
+                                                                    <span className="badge bg-secondary">
+                                                                        Talla {item.size}
+                                                                    </span>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </label>

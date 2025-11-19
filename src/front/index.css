@@ -1,0 +1,306 @@
+/* ========================================
+   IMPORTS
+======================================== */
+@import '/src/front/styles/variables.css';
+
+/* ========================================
+   RESET Y BASE
+======================================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-primary);
+  background-color: var(--color-white);
+  color: var(--color-black);
+  line-height: 1.6;
+  overflow-x: hidden;
+  font-weight: var(--weight-normal);
+}
+
+/* ========================================
+   TIPOGRAFÍA POTENTE
+======================================== */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: var(--weight-normal);
+  line-height: 1.1;
+  margin-bottom: var(--space-lg);
+  color: var(--color-black);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+h1 { 
+  font-size: var(--text-6xl); 
+  letter-spacing: 0.01em;
+}
+
+h2 { 
+  font-size: var(--text-5xl);
+  letter-spacing: 0.015em;
+}
+
+h3 { 
+  font-size: var(--text-4xl);
+  letter-spacing: 0.02em;
+}
+
+h4 { 
+  font-size: var(--text-3xl);
+}
+
+h5 { 
+  font-size: var(--text-2xl);
+}
+
+h6 { 
+  font-size: var(--text-xl);
+}
+
+p {
+  margin-bottom: var(--space-md);
+  color: var(--color-gray-400);
+  font-weight: var(--weight-medium);
+  line-height: 1.7;
+}
+
+strong {
+  font-weight: var(--weight-bold);
+}
+
+a {
+  color: var(--color-black);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+  font-weight: var(--weight-semibold);
+}
+
+a:hover {
+  color: var(--color-gray-400);
+}
+
+/* ========================================
+   BOTONES CON MÁS PRESENCIA
+======================================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg) var(--space-2xl);
+  font-size: var(--text-base);
+  font-weight: var(--weight-bold);
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--elevation-2);
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.btn:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.btn-primary {
+  background-color: var(--color-black);
+  color: var(--color-white);
+}
+
+.btn-primary:hover {
+  background-color: var(--color-gray-900);
+  transform: translateY(-4px);
+  box-shadow: var(--elevation-4);
+}
+
+.btn-primary:active {
+  transform: translateY(-2px);
+  box-shadow: var(--elevation-2);
+}
+
+.btn-secondary {
+  background-color: var(--color-white);
+  color: var(--color-black);
+  border: var(--border-medium) solid var(--color-black);
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-black);
+  color: var(--color-white);
+  transform: translateY(-4px);
+  box-shadow: var(--elevation-4);
+}
+
+.btn-outline {
+  background-color: transparent;
+  color: var(--color-black);
+  border: var(--border-thin) solid var(--color-gray-200);
+  box-shadow: none;
+}
+
+.btn-outline:hover {
+  background-color: var(--color-gray-50);
+  border-color: var(--color-black);
+  transform: translateY(-2px);
+  box-shadow: var(--elevation-2);
+}
+
+/* ========================================
+   CARDS CON ELEVACIÓN
+======================================== */
+.card {
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--elevation-1);
+  transition: all var(--transition-base);
+}
+
+.card:hover {
+  box-shadow: var(--elevation-3);
+  transform: translateY(-4px);
+}
+
+/* ========================================
+   LAYOUT CONTAINERS
+======================================== */
+.container-full {
+  width: 100%;
+  padding: 0 var(--space-xl);
+  margin: 0 auto;
+}
+
+.section-padding {
+  padding: var(--space-4xl) 0;
+}
+
+/* ========================================
+   UTILIDADES DE TEXTO
+======================================== */
+.text-center {
+  text-align: center;
+}
+
+.text-uppercase {
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.text-display {
+  font-family: var(--font-display);
+}
+
+.fw-bold {
+  font-weight: var(--weight-bold);
+}
+
+.fw-black {
+  font-weight: var(--weight-black);
+}
+
+.fw-extrabold {
+  font-weight: var(--weight-extrabold);
+}
+
+/* ========================================
+   SPACING UTILITIES
+======================================== */
+.mb-0 { margin-bottom: 0; }
+.mb-1 { margin-bottom: var(--space-sm); }
+.mb-2 { margin-bottom: var(--space-md); }
+.mb-3 { margin-bottom: var(--space-lg); }
+.mb-4 { margin-bottom: var(--space-xl); }
+.mb-5 { margin-bottom: var(--space-2xl); }
+
+/* ========================================
+   ANIMACIONES
+======================================== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slide-in {
+  animation: slideIn 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ========================================
+   EFECTOS DE HOVER
+======================================== */
+.hover-lift {
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+
+.hover-lift:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--elevation-4);
+}
+
+/* ========================================
+   RESPONSIVE
+======================================== */
+@media (max-width: 768px) {
+  :root {
+    --text-6xl: 3rem;
+    --text-5xl: 2.5rem;
+    --text-4xl: 2rem;
+    --text-3xl: 1.75rem;
+  }
+  
+  .section-padding {
+    padding: var(--space-2xl) 0;
+  }
+  
+  h1, h2, h3 {
+    letter-spacing: 0.01em;
+  }
+}

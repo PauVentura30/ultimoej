@@ -25,21 +25,15 @@ app = Flask(__name__)
 app.url_map.strict_slashes = False
 
 # Configurar CORS para permitir peticiones desde el frontend
-CORS(app, origins=[
-    "https://urban-space-cod-r4p4wp7qx6662xvgq-3002.app.github.dev",
-    "https://urban-space-cod-r4p4wp7qx6662xvgq-3001.app.github.dev",
-    "https://ubiquitous-space-doodle-4jwj6wq5rw9q26jp-3000.app.github.dev",
-    "https://ubiquitous-space-doodle-4jwj6wq5rw9q26jp-3001.app.github.dev",
-    "http://localhost:3000",
-    "http://localhost:3001",
-    "http://localhost:3002"
-])
+CORS(app, 
+     resources={r"/api/*": {"origins": "*"}},
+     allow_headers=["Content-Type", "Authorization"],
+     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+     supports_credentials=True)
 
-# Configuración de la base de datos - FORZANDO SQLite
-# db_url = os.getenv("DATABASE_URL")
-# Temporalmente usando SQLite en lugar de PostgreSQL
-app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:////tmp/test.db"
-print("✅ Usando SQLite: /tmp/test.db")
+app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:////workspaces/ultimoej/database.db"
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+print("✅ database.db ready")
 
 # Configuración adicional para producción
 if ENV == "production":
@@ -93,15 +87,11 @@ except Exception as e:
     print(f"⚠️ Error configurando Stripe: {e}")
 
 # Manejador global de errores para APIException personalizada
-
-
 @app.errorhandler(APIException)
 def handle_invalid_usage(error):
     return jsonify(error.to_dict()), error.status_code
 
 # Manejador de errores 500 para producción
-
-
 @app.errorhandler(500)
 def handle_500_error(error):
     if ENV == "production":
@@ -110,8 +100,6 @@ def handle_500_error(error):
         return jsonify({"error": str(error)}), 500
 
 # Manejador de errores 404
-
-
 @app.errorhandler(404)
 def handle_404_error(error):
     return jsonify({"error": "Endpoint no encontrado"}), 404
@@ -126,8 +114,6 @@ with app.app_context():
         print(f"⚠️ Error creando tablas: {e}")
 
 # Ruta principal que genera sitemap en desarrollo o sirve index.html en producción
-
-
 @app.route('/')
 def sitemap():
     if ENV == "development":
@@ -135,19 +121,15 @@ def sitemap():
     return send_from_directory(static_file_dir, 'index.html')
 
 # Ruta catch-all para servir archivos estáticos del frontend
-
-
 @app.route('/<path:path>', methods=['GET'])
 def serve_any_other_file(path):
-    if not os.path.isfile(os.path.join(static_file_dir, path)):
+    if not os.isfile(os.path.join(static_file_dir, path)):
         path = 'index.html'
     response = send_from_directory(static_file_dir, path)
     response.cache_control.max_age = 0  # Evitar caché para desarrollo
     return response
 
 # Endpoint de salud para verificar que la app está funcionando
-
-
 @app.route('/health')
 def health_check():
     return jsonify({
@@ -159,5 +141,201 @@ def health_check():
 
 # Punto de entrada principal cuando se ejecuta directamente
 if __name__ == '__main__':
-    PORT = int(os.environ.get('PORT', 3001))
-    app.run(host='0.0.0.0', port=PORT, debug=(ENV == "development"))
+    import sys
+
+    # Verificar si se pasó el comando insert-products
+    if len(sys.argv) > 1 and sys.argv[1] == 'insert-products':
+        from api.models import Product
+
+        print("🛍️  Insertando productos en la base de datos...")
+
+        # Lista de productos a insertar CON IMÁGENES LOCALES
+        productos_iniciales = [
+            {
+                "name": "Air Jordan 1 Retro High OG",
+                "brand": "Nike",
+                "price": 180.00,
+                "image": "/img/airjordan-1.webp",
+                "description": "El icónico Air Jordan 1 que revolucionó el baloncesto. Diseño clásico con cuero premium.",
+                "stock": 45,
+                "rating": 4.9,
+                "reviews_count": 2847,
+                "category": "Basketball",
+                "badge": "Nuevo"
+            },
+            {
+                "name": "Air Force 1 '07",
+                "brand": "Nike",
+                "price": 110.00,
+                "image": "/img/airforce-1.png",
+                "description": "El clásico de 1982 que nunca pasa de moda. Estilo atemporal con amortiguación Air.",
+                "stock": 120,
+                "rating": 4.8,
+                "reviews_count": 5234,
+                "category": "Casual",
+                "badge": None
+            },
+            {
+                "name": "Air Max 90",
+                "brand": "Nike",
+                "price": 140.00,
+                "image": "/img/airmax-90.png",
+                "description": "El icónico diseño con la legendaria unidad Air visible. Un clásico de los 90.",
+                "stock": 78,
+                "rating": 4.7,
+                "reviews_count": 3421,
+                "category": "Sport",
+                "badge": "Oferta"
+            },
+            {
+                "name": "Dunk Low Retro Panda",
+                "brand": "Nike",
+                "price": 115.00,
+                "image": "/img/dunklow-panda.webp",
+                "description": "El Dunk más buscado del año. Combinación blanco y negro icónica.",
+                "stock": 92,
+                "rating": 4.9,
+                "reviews_count": 1876,
+                "category": "Casual",
+                "badge": "Nuevo"
+            },
+            {
+                "name": "Air Max 97 Silver Bullet",
+                "brand": "Nike",
+                "price": 185.00,
+                "image": "/img/airmax-97.avif",
+                "description": "Inspirado en las líneas de velocidad de los trenes bala. Estilo futurista inconfundible.",
+                "stock": 34,
+                "rating": 4.8,
+                "reviews_count": 2103,
+                "category": "Sport",
+                "badge": None
+            },
+            {
+                "name": "Blazer Mid '77 Vintage",
+                "brand": "Nike",
+                "price": 105.00,
+                "image": "/img/blazermid-77.png",
+                "description": "El clásico del baloncesto de los 70 con acabado vintage. Suela de goma vulcanizada.",
+                "stock": 67,
+                "rating": 4.6,
+                "reviews_count": 987,
+                "category": "Casual",
+                "badge": None
+            },
+            {
+                "name": "Air Jordan 4 Retro Military Black",
+                "brand": "Nike",
+                "price": 210.00,
+                "image": "/img/airjordan-4.jfif",
+                "description": "El Jordan 4 combina estilo y rendimiento. Malla transpirable y soportes laterales.",
+                "stock": 28,
+                "rating": 4.9,
+                "reviews_count": 1654,
+                "category": "Basketball",
+                "badge": "Nuevo"
+            },
+            {
+                "name": "Air Max 270",
+                "brand": "Nike",
+                "price": 160.00,
+                "image": "/img/airmax-270.png",
+                "description": "La unidad Air más grande de Nike. Diseño moderno con máxima comodidad.",
+                "stock": 89,
+                "rating": 4.7,
+                "reviews_count": 2456,
+                "category": "Sport",
+                "badge": "Oferta"
+            },
+            {
+                "name": "React Infinity Run Flyknit 3",
+                "brand": "Nike",
+                "price": 170.00,
+                "image": "/img/react-infinity-run.avif",
+                "description": "Running de alto rendimiento con espuma React. Diseñado para reducir lesiones.",
+                "stock": 56,
+                "rating": 4.8,
+                "reviews_count": 1234,
+                "category": "Running",
+                "badge": None
+            },
+            {
+                "name": "Cortez Leather White",
+                "brand": "Nike",
+                "price": 75.00,
+                "image": "/img/cortez.png",
+                "description": "El primer gran éxito de Nike desde 1972. Diseño retro con estilo atemporal.",
+                "stock": 110,
+                "rating": 4.6,
+                "reviews_count": 876,
+                "category": "Casual",
+                "badge": None
+            },
+            {
+                "name": "Air Max Plus Triple Black",
+                "brand": "Nike",
+                "price": 180.00,
+                "image": "/img/airmax-plus.webp",
+                "description": "El legendario TN con su diseño agresivo de ondas. Máxima amortiguación Air.",
+                "stock": 41,
+                "rating": 4.8,
+                "reviews_count": 1567,
+                "category": "Sport",
+                "badge": "Nuevo"
+            },
+            {
+                "name": "Pegasus 40 Running",
+                "brand": "Nike",
+                "price": 140.00,
+                "image": "/img/Pegasus-40.avif",
+                "description": "El caballo de batalla del running. Amortiguación reactiva para todo tipo de corredores.",
+                "stock": 95,
+                "rating": 4.7,
+                "reviews_count": 3201,
+                "category": "Running",
+                "badge": None
+            }
+        ]
+
+        # Insertar cada producto en la base de datos
+        productos_agregados = 0
+        with app.app_context():
+            for producto_data in productos_iniciales:
+                # Verificar si el producto ya existe
+                existing = Product.query.filter_by(
+                    name=producto_data["name"]).first()
+                if existing:
+                    print(
+                        f"⏭️  Saltando '{producto_data['name']}' (ya existe)")
+                    continue
+
+                # Crear nuevo producto
+                nuevo_producto = Product(
+                    name=producto_data["name"],
+                    brand=producto_data["brand"],
+                    price=producto_data["price"],
+                    image=producto_data["image"],
+                    description=producto_data["description"],
+                    stock=producto_data["stock"],
+                    rating=producto_data["rating"],
+                    reviews_count=producto_data["reviews_count"],
+                    category=producto_data["category"],
+                    badge=producto_data["badge"]
+                )
+
+                try:
+                    db.session.add(nuevo_producto)
+                    db.session.commit()
+                    print(f"✅ Producto '{producto_data['name']}' agregado")
+                    productos_agregados += 1
+                except Exception as e:
+                    db.session.rollback()
+                    print(f"❌ Error agregando '{producto_data['name']}': {e}")
+
+        print(
+            f"\n🎉 ¡Completado! {productos_agregados} productos agregados a la base de datos.")
+
+    else:
+        # Ejecutar servidor Flask normalmente
+        PORT = int(os.environ.get('PORT', 3001))
+        app.run(host='0.0.0.0', port=PORT, debug=(ENV == "development"))

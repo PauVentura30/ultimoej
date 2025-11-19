@@ -63,13 +63,14 @@ export function CheckoutSuccess() {
         total: parseFloat(total.toFixed(2)),
         canReturn: true, // Permitir devolución desde el inicio
         items: cartItems.map(item => ({
+          id: item.id, // ← Importante para identificar el producto
           name: item.name,
           quantity: item.quantity || 1,
           price: item.price,
           image: item.image,
-          size: item.size || null,
-          color: item.color || null,
-          brand: item.brand || null
+          size: item.size || null, // ← Guardar talla
+          brand: item.brand || null,
+          badge: item.badge || null
         }))
       };
 

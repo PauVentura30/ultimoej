@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import useGlobalReducer from "../hooks/useGlobalReducer";
 import "../styles/productDetail.css";
 
 export const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { dispatch } = useGlobalReducer();
   
   const [producto, setProducto] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedColor, setSelectedColor] = useState("");
   const [selectedSize, setSelectedSize] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [mainImage, setMainImage] = useState("");
@@ -30,18 +31,6 @@ export const ProductDetail = () => {
         if (data.success) {
           setProducto(data.product);
           setMainImage(data.product.image);
-          
-          // Parsear colores si es un string separado por comas
-          const colors = typeof data.product.colors === 'string' 
-            ? data.product.colors.split(',').map(c => c.trim())
-            : data.product.colors || [];
-          
-          if (colors.length > 0) {
-            setSelectedColor(colors[0]);
-          }
-          
-          // Guardar colores parseados en el producto
-          setProducto(prev => ({ ...prev, colors }));
         } else {
           throw new Error('Error al cargar el producto');
         }
@@ -58,8 +47,9 @@ export const ProductDetail = () => {
 
   // Añadir al carrito
   const handleAddToCart = () => {
+    // Validar que se haya seleccionado una talla
     if (!selectedSize) {
-      alert("Por favor selecciona una talla");
+      alert("⚠️ Por favor selecciona una talla antes de añadir al carrito");
       return;
     }
 
@@ -69,19 +59,17 @@ export const ProductDetail = () => {
       brand: producto.brand,
       price: producto.price,
       image: producto.image,
-      color: selectedColor,
       size: selectedSize,
-      quantity: quantity
+      quantity: quantity,
+      badge: producto.badge || null
     };
 
     // Obtener carrito actual del localStorage
     const currentCart = JSON.parse(localStorage.getItem("cart")) || [];
     
-    // Verificar si el producto ya existe con el mismo color y talla
+    // Verificar si el producto ya existe con la misma talla
     const existingItemIndex = currentCart.findIndex(
-      item => item.id === cartItem.id && 
-              item.color === cartItem.color && 
-              item.size === cartItem.size
+      item => item.id === cartItem.id && item.size === cartItem.size
     );
 
     if (existingItemIndex > -1) {
@@ -95,8 +83,15 @@ export const ProductDetail = () => {
     // Guardar en localStorage
     localStorage.setItem("cart", JSON.stringify(currentCart));
     
+    // Actualizar el store global - pasar TODO el carrito actualizado
+    dispatch({ type: "SET_CART", payload: currentCart });
+    
     // Mensaje de confirmación
-    alert(`✅ ${quantity} ${producto.name} añadido(s) al carrito`);
+    alert(`✅ ${quantity} x ${producto.name} (Talla ${selectedSize}) añadido al carrito`);
+    
+    // Resetear la selección
+    setSelectedSize("");
+    setQuantity(1);
   };
 
   // Incrementar cantidad
@@ -142,7 +137,7 @@ export const ProductDetail = () => {
     );
   }
 
-  // Tallas disponibles (puedes modificar esto según tus necesidades)
+  // Tallas disponibles
   const availableSizes = ["36", "37", "38", "39", "40", "41", "42", "43", "44", "45"];
 
   return (
@@ -217,29 +212,13 @@ export const ProductDetail = () => {
           {/* Descripción */}
           <p className="product-description">{producto.description}</p>
 
-          {/* Selector de color */}
-          {producto.colors && producto.colors.length > 0 && (
-            <div className="product-option">
-              <label>Color: <strong>{selectedColor}</strong></label>
-              <div className="color-selector">
-                {producto.colors.map((color, index) => (
-                  <button
-                    key={index}
-                    className={`color-option ${selectedColor === color ? 'active' : ''}`}
-                    style={{ backgroundColor: color.toLowerCase() }}
-                    onClick={() => setSelectedColor(color)}
-                    title={color}
-                  >
-                    {selectedColor === color && <span className="check-mark">✓</span>}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* Selector de talla */}
           <div className="product-option">
-            <label>Talla: {selectedSize && <strong>{selectedSize}</strong>}</label>
+            <label>
+              Selecciona tu talla: 
+              {selectedSize && <strong className="text-success"> {selectedSize} ✓</strong>}
+              {!selectedSize && <span className="text-danger"> *</span>}
+            </label>
             <div className="size-selector">
               {availableSizes.map((size) => (
                 <button
@@ -251,11 +230,17 @@ export const ProductDetail = () => {
                 </button>
               ))}
             </div>
+            {!selectedSize && (
+              <small className="text-muted d-block mt-2">
+                <i className="bi bi-info-circle me-1"></i>
+                Selecciona una talla para continuar
+              </small>
+            )}
           </div>
 
-          {/* Cantidad */}
-          <div className="product-option">
-            <label>Cantidad:</label>
+          {/* Cantidad EN HORIZONTAL */}
+          <div className="quantity-wrapper">
+            <span>Cantidad:</span>
             <div className="quantity-selector">
               <button className="quantity-btn" onClick={decrementQuantity}>-</button>
               <span className="quantity-value">{quantity}</span>
@@ -274,7 +259,7 @@ export const ProductDetail = () => {
             </span>
           </div>
 
-          {/* Botones de acción */}
+          {/* Botón añadir al carrito */}
           <div className="product-actions">
             <button 
               className="btn-add-cart"
@@ -282,9 +267,6 @@ export const ProductDetail = () => {
               disabled={producto.stock === 0}
             >
               {producto.stock === 0 ? "Agotado" : "Añadir al carrito"}
-            </button>
-            <button className="btn-buy-now" disabled={producto.stock === 0}>
-              Comprar ahora
             </button>
           </div>
 

@@ -1,0 +1,94 @@
+/* ========================================
+   VARIABLES DE DISEÑO - ESTILO NIKE PREMIUM
+======================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+:root {
+  /* COLORES PRINCIPALES */
+  --color-black: #000000;
+  --color-white: #FFFFFF;
+  --color-gray-50: #FAFAFA;
+  --color-gray-100: #F5F5F5;
+  --color-gray-200: #E5E5E5;
+  --color-gray-300: #8E8E8E;
+  --color-gray-400: #6B6B6B;
+  --color-gray-500: #3D3D3D;
+  --color-gray-900: #111111;
+  
+  /* COLOR ACENTO */
+  --color-accent: #FF6B35;
+  --color-accent-hover: #E65A2E;
+  
+  /* ESTADOS */
+  --color-success: #00D563;
+  --color-error: #E50914;
+  --color-warning: #FFB800;
+  
+  /* TIPOGRAFÍA */
+  --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: 'Bebas Neue', 'Arial Black', sans-serif;
+  --font-mono: 'SF Mono', 'Monaco', 'Courier New', monospace;
+  
+  /* TAMAÑOS DE FUENTE */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: 2.25rem;
+  --text-4xl: 3rem;
+  --text-5xl: 4rem;
+  --text-6xl: 5rem;
+  
+  /* PESOS DE FUENTE */
+  --weight-normal: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --weight-extrabold: 800;
+  --weight-black: 900;
+  
+  /* ESPACIADO */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  --space-3xl: 4rem;
+  --space-4xl: 6rem;
+  
+  /* SOMBRAS - MÁS PRESENTES */
+  --shadow-xs: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  --shadow-sm: 0 2px 6px 0 rgba(0, 0, 0, 0.12);
+  --shadow-md: 0 4px 12px 0 rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 8px 24px 0 rgba(0, 0, 0, 0.18);
+  --shadow-xl: 0 16px 48px 0 rgba(0, 0, 0, 0.22);
+  --shadow-2xl: 0 24px 64px 0 rgba(0, 0, 0, 0.28);
+  
+  /* SOMBRAS DE ELEVACIÓN */
+  --elevation-1: 0 2px 4px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --elevation-2: 0 4px 8px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.08);
+  --elevation-3: 0 8px 16px rgba(0, 0, 0, 0.16), 0 4px 8px rgba(0, 0, 0, 0.12);
+  --elevation-4: 0 16px 32px rgba(0, 0, 0, 0.20), 0 8px 16px rgba(0, 0, 0, 0.16);
+  
+  /* TRANSICIONES */
+  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-bounce: 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  
+  /* BORDER RADIUS */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+  
+  /* BORDERS */
+  --border-thin: 1px;
+  --border-medium: 2px;
+  --border-thick: 3px;
+}

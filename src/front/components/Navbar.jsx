@@ -18,8 +18,8 @@ export function Navbar() {
   // Hook para verificar el estado de autenticación del usuario
   const { isLoggedIn, user } = useAuth();
 
-  // Calcula el número total de items en el carrito
-  const cartItemsCount = store.cart ? store.cart.reduce((sum, item) => sum + (item.quantity || 1), 0) : 0;
+  // Calcula el número total de items en el carrito (cuenta items diferentes, no cantidad total)
+  const cartItemsCount = store.cart ? store.cart.length : 0;
 
   // Función para procesar y ejecutar la búsqueda de productos
   const handleSearch = (e) => {
