@@ -1,9 +1,16 @@
 [build]
-  base = "src/front"
-  command = "npm install && npm run build"
+  base = ""
+  command = "cd src/front && npm install && npm run build"
   publish = "dist"
 
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+```
+
+**Y en Netlify UI, configura:**
+```
+Base directory: (vacío)
+Build command: cd src/front && npm install && npm run build
+Publish directory: dist
