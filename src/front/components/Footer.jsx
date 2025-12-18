@@ -33,7 +33,7 @@ export const Footer = () => (
         <div className="row g-3">
           {/* Sección de información de la marca y redes sociales */}
           <div className="col-lg-3 col-md-6">
-            <h6 className="mb-2">BambasShop</h6>
+            <h6 className="mb-2 text-white fw-bold">BambasShop</h6>
             <p className="mb-2 small">Tu tienda online de confianza para tus zapatillas favoritas!</p>
             <div className="d-flex gap-2">
               <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-white">
@@ -50,7 +50,7 @@ export const Footer = () => (
           
           {/* Sección de enlaces de navegación principales */}
           <div className="col-lg-3 col-md-6">
-            <h6 className="mb-2">Navegación</h6>
+            <h6 className="mb-2 text-white fw-bold">Navegación</h6>
             <ul className="list-unstyled small mb-0">
               <li className="mb-1">
                 <Link to="/" className="text-white-50 text-decoration-none">Inicio</Link>
@@ -66,7 +66,7 @@ export const Footer = () => (
           
           {/* Sección de enlaces informativos y legales */}
           <div className="col-lg-3 col-md-6">
-            <h6 className="mb-2">Información</h6>
+            <h6 className="mb-2 text-white fw-bold">Información</h6>
             <ul className="list-unstyled small mb-0">
               <li className="mb-1">
                 <Link to="/contacto" className="text-white-50 text-decoration-none">Contacto</Link>
@@ -85,7 +85,7 @@ export const Footer = () => (
           
           {/* Sección de información de contacto con iconos */}
           <div className="col-lg-3 col-md-6">
-            <h6 className="mb-2">Contacto</h6>
+            <h6 className="mb-2 text-white fw-bold">Contacto</h6>
             <ul className="list-unstyled small mb-0">
               <li className="mb-1 d-flex align-items-center">
                 <i className="bi bi-geo-alt me-2"></i>

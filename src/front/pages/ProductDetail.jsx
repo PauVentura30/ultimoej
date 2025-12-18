@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import useGlobalReducer from "../hooks/useGlobalReducer";
+import useToast from "../hooks/useToast";
 import "../styles/productDetail.css";
 
 export const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { dispatch } = useGlobalReducer();
+  const toast = useToast();
   
   const [producto, setProducto] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -49,7 +51,7 @@ export const ProductDetail = () => {
   const handleAddToCart = () => {
     // Validar que se haya seleccionado una talla
     if (!selectedSize) {
-      alert("⚠️ Por favor selecciona una talla antes de añadir al carrito");
+      toast.warning("Por favor selecciona una talla antes de añadir al carrito");
       return;
     }
 
@@ -87,7 +89,7 @@ export const ProductDetail = () => {
     dispatch({ type: "SET_CART", payload: currentCart });
     
     // Mensaje de confirmación
-    alert(`✅ ${quantity} x ${producto.name} (Talla ${selectedSize}) añadido al carrito`);
+    toast.success(`${quantity} x ${producto.name} (Talla ${selectedSize}) añadido al carrito`);
     
     // Resetear la selección
     setSelectedSize("");
@@ -276,12 +278,6 @@ export const ProductDetail = () => {
             <p><strong>SKU:</strong> {producto.id}</p>
           </div>
         </div>
-      </div>
-
-      {/* Sección de productos relacionados (opcional) */}
-      <div className="related-products">
-        <h2>Productos relacionados</h2>
-        <p className="text-muted">Próximamente...</p>
       </div>
     </div>
   );

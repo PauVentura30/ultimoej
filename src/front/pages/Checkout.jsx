@@ -128,6 +128,10 @@ function CheckoutForm() {
     setIsProcessing(true);
     setError('');
 
+    // 🔥 GUARDAR CARRITO EN SESSIONSTORAGE COMO BACKUP
+    sessionStorage.setItem('pending_order', JSON.stringify(store.cart));
+    console.log('✅ Carrito guardado en sessionStorage como backup');
+
     const cardElement = elements.getElement(CardElement);
 
     // Confirma el pago con Stripe usando los datos del formulario

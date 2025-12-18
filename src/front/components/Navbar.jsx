@@ -68,8 +68,15 @@ export function Navbar() {
       {/* Barra de navegación principal con Bootstrap */}
       <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
         <div className="container">
-          {/* Logo/marca de la tienda */}
-          <Link className="navbar-brand fw-bold text-dark" to="/">BambasShop</Link>
+          {/* Logo de la tienda */}
+          <Link className="navbar-brand" to="/">
+            <img 
+              src="/img/logo-bambas-navbar.png" 
+              alt="BambasShop" 
+              height="70"
+              className="d-inline-block align-top"
+            />
+          </Link>
 
           {/* Botón hamburguesa para menú móvil */}
           <button

@@ -9,7 +9,6 @@ export function CheckoutSuccess() {
   const { user } = useAuth();
   const { store, dispatch } = useGlobalReducer();
   
-  const [orderCreated, setOrderCreated] = useState(false);
   const [orderNumber, setOrderNumber] = useState('');
 
   const paymentIntentId = searchParams.get('payment_intent');
@@ -28,18 +27,63 @@ export function CheckoutSuccess() {
     }
   };
 
-  useEffect(() => {
-    // Obtener el carrito desde localStorage (porque después de pagar puede que store esté vacío)
-    const savedCart = localStorage.getItem('cart');
-    const cartItems = savedCart ? JSON.parse(savedCart) : [];
-    
-    console.log('🛒 Carrito recuperado:', cartItems);
-
-    // Solo crear el pedido una vez y si hay items
-    if (!orderCreated && cartItems.length > 0) {
-      createOrder(cartItems);
+  const getUserEmail = () => {
+    try {
+      const userData = localStorage.getItem('user_data');
+      if (userData) {
+        const parsed = JSON.parse(userData);
+        return parsed.email || 'guest';
+      }
+      return 'guest';
+    } catch (error) {
+      console.error('Error obteniendo email:', error);
+      return 'guest';
     }
-  }, []);
+  };
+
+  useEffect(() => {
+    console.log('🎯 CheckoutSuccess montado');
+    
+    // Prevenir múltiples creaciones
+    const alreadyProcessed = sessionStorage.getItem(`order_processed_${paymentIntentId}`);
+    if (alreadyProcessed) {
+      console.log('⚠️ Pedido ya procesado anteriormente');
+      setOrderNumber(alreadyProcessed);
+      return;
+    }
+
+    // PRIMERO: Intentar recuperar del store de Redux
+    let cartItems = store.cart || [];
+    console.log('🛒 Carrito desde store:', cartItems);
+
+    // SEGUNDO: Si está vacío, intentar desde localStorage
+    if (cartItems.length === 0) {
+      const savedCart = localStorage.getItem('cart');
+      if (savedCart) {
+        cartItems = JSON.parse(savedCart);
+        console.log('🛒 Carrito recuperado desde localStorage:', cartItems);
+      }
+    }
+
+    // TERCERO: Si sigue vacío, intentar desde sessionStorage (backup)
+    if (cartItems.length === 0) {
+      const pendingOrder = sessionStorage.getItem('pending_order');
+      if (pendingOrder) {
+        cartItems = JSON.parse(pendingOrder);
+        console.log('🛒 Carrito recuperado desde sessionStorage (backup):', cartItems);
+      }
+    }
+
+    console.log('📧 Email del usuario:', getUserEmail());
+
+    // Solo crear el pedido si hay items
+    if (cartItems.length > 0) {
+      createOrder(cartItems);
+    } else {
+      console.error('❌ No hay items en el carrito para crear pedido');
+      alert('Error: No se pudo recuperar el carrito. Por favor contacta con soporte.');
+    }
+  }, [paymentIntentId]);
 
   const createOrder = (cartItems) => {
     try {
@@ -61,14 +105,14 @@ export function CheckoutSuccess() {
         deliveryDate: null,
         status: "Procesando",
         total: parseFloat(total.toFixed(2)),
-        canReturn: true, // Permitir devolución desde el inicio
+        canReturn: true,
         items: cartItems.map(item => ({
-          id: item.id, // ← Importante para identificar el producto
+          id: item.id,
           name: item.name,
           quantity: item.quantity || 1,
           price: item.price,
           image: item.image,
-          size: item.size || null, // ← Guardar talla
+          size: item.size || null,
           brand: item.brand || null,
           badge: item.badge || null
         }))
@@ -76,25 +120,42 @@ export function CheckoutSuccess() {
 
       console.log('✅ Nuevo pedido creado:', newOrder);
 
+      // Obtener email del usuario
+      const userEmail = getUserEmail();
+      console.log('💾 Guardando pedido para usuario:', userEmail);
+
       // Obtener pedidos existentes del usuario
-      const existingOrders = JSON.parse(localStorage.getItem('user_orders') || '[]');
+      const storageKey = `user_orders_${userEmail}`;
+      const existingOrders = JSON.parse(localStorage.getItem(storageKey) || '[]');
+      console.log('📋 Pedidos existentes:', existingOrders);
       
       // Añadir el nuevo pedido al inicio
       const updatedOrders = [newOrder, ...existingOrders];
       
-      // Guardar en localStorage
-      localStorage.setItem('user_orders', JSON.stringify(updatedOrders));
+      // Guardar en localStorage (por usuario)
+      localStorage.setItem(storageKey, JSON.stringify(updatedOrders));
+      console.log('✅ Pedido guardado en:', storageKey);
+      console.log('📦 Total de pedidos ahora:', updatedOrders.length);
       
       // Vaciar el carrito
       dispatch({ type: 'clear_cart' });
       localStorage.setItem('cart', JSON.stringify([]));
       
+      // Limpiar sessionStorage backup
+      sessionStorage.removeItem('pending_order');
+      
+      // Marcar como procesado en sessionStorage
+      if (paymentIntentId) {
+        sessionStorage.setItem(`order_processed_${paymentIntentId}`, orderNum);
+      }
+      
       setOrderNumber(orderNum);
-      setOrderCreated(true);
       
       console.log('✅ Pedido guardado y carrito vaciado');
+      console.log('🔍 Verifica en localStorage la key:', storageKey);
     } catch (error) {
       console.error('❌ Error creando pedido:', error);
+      alert('Hubo un error al crear el pedido. Por favor contacta con soporte.');
     }
   };
 
@@ -104,18 +165,15 @@ export function CheckoutSuccess() {
         <div className="col-md-8">
           <div className="card border-0 shadow-sm">
             <div className="card-body text-center p-5">
-              {/* Icono de éxito */}
               <div className="text-success mb-4">
                 <i className="bi bi-check-circle-fill" style={{fontSize: '4rem'}}></i>
               </div>
               
-              {/* Mensaje principal de confirmación */}
               <h1 className="text-success mb-3">¡Pago realizado con éxito!</h1>
               <p className="lead mb-4">
                 Gracias por tu compra, {getUserName()}. Tu pedido ha sido procesado correctamente.
               </p>
 
-              {/* Detalles del pedido */}
               {orderNumber && (
                 <div className="bg-light rounded p-4 mb-4">
                   <div className="row text-start">
@@ -127,7 +185,6 @@ export function CheckoutSuccess() {
                 </div>
               )}
 
-              {/* Información sobre los siguientes pasos */}
               <div className="alert alert-info">
                 <i className="bi bi-info-circle me-2"></i>
                 <strong>¿Qué sigue?</strong>
@@ -138,7 +195,6 @@ export function CheckoutSuccess() {
                 </ul>
               </div>
 
-              {/* Botones de navegación post-compra */}
               <div className="d-flex gap-3 justify-content-center mt-4">
                 <button 
                   className="btn btn-dark btn-lg"

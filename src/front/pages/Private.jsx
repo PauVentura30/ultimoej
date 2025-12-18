@@ -2,11 +2,13 @@ import React, { useEffect, useState } from "react";
 import useGlobalReducer from "../hooks/useGlobalReducer";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
+import useToast from "../hooks/useToast";
 
 export const Private = () => {
     const { store, dispatch } = useGlobalReducer();
     const navigate = useNavigate();
     const { isLoggedIn, user, logout } = useAuth();
+    const toast = useToast();
     
     const [activeTab, setActiveTab] = useState("perfil");
     const [avatar, setAvatar] = useState(user?.avatar || null);
@@ -16,9 +18,22 @@ export const Private = () => {
     // Estados para modal de devolución
     const [showReturnModal, setShowReturnModal] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState(null);
-    const [selectedItems, setSelectedItems] = useState([]); // Items seleccionados para devolver
+    const [selectedItems, setSelectedItems] = useState([]);
     const [returnReason, setReturnReason] = useState('');
     const [returnComments, setReturnComments] = useState('');
+    
+    // Estados para direcciones
+    const [addresses, setAddresses] = useState([]);
+    const [showAddressModal, setShowAddressModal] = useState(false);
+    const [editingAddress, setEditingAddress] = useState(null);
+    const [addressForm, setAddressForm] = useState({
+        name: '',
+        street: '',
+        city: '',
+        postalCode: '',
+        country: 'España',
+        isDefault: false
+    });
     
     const [formData, setFormData] = useState({
         name: user?.name || "",
@@ -27,20 +42,8 @@ export const Private = () => {
         phone: user?.phone || ""
     });
 
-    // Leer pedidos del localStorage
-    const [orders, setOrders] = useState(() => {
-        const savedOrders = localStorage.getItem('user_orders');
-        return savedOrders ? JSON.parse(savedOrders) : [];
-    });
-
-    // Leer devoluciones del localStorage
-    const [returns, setReturns] = useState(() => {
-        const savedReturns = localStorage.getItem('user_returns');
-        return savedReturns ? JSON.parse(savedReturns) : [];
-    });
-
-    // Leer direcciones del localStorage
-    const [addresses] = useState([]);
+    const [orders, setOrders] = useState([]);
+    const [returns, setReturns] = useState([]);
 
     useEffect(() => {
         if (!isLoggedIn) {
@@ -56,41 +59,47 @@ export const Private = () => {
             phone: user?.phone || ""
         });
 
-        // Sincronizar pedidos desde localStorage
-        const savedOrders = localStorage.getItem('user_orders');
+        const userEmail = getUserEmail();
+
+        // Sincronizar pedidos desde localStorage (por usuario)
+        const savedOrders = localStorage.getItem(`user_orders_${userEmail}`);
         if (savedOrders) {
             setOrders(JSON.parse(savedOrders));
         }
 
-        // Sincronizar devoluciones desde localStorage
-        const savedReturns = localStorage.getItem('user_returns');
+        // Sincronizar devoluciones desde localStorage (por usuario)
+        const savedReturns = localStorage.getItem(`user_returns_${userEmail}`);
         if (savedReturns) {
             setReturns(JSON.parse(savedReturns));
+        }
+
+        // Sincronizar direcciones desde localStorage (por usuario)
+        const savedAddresses = localStorage.getItem(`user_addresses_${userEmail}`);
+        if (savedAddresses) {
+            setAddresses(JSON.parse(savedAddresses));
         }
 
         // Limpiar devoluciones antiguas (más de 30 días)
         cleanOldReturns();
     }, [isLoggedIn, navigate, user]);
 
-    // Función para limpiar devoluciones antiguas (más de 30 días)
     const cleanOldReturns = () => {
         try {
-            const savedReturns = localStorage.getItem('user_returns');
+            const userEmail = getUserEmail();
+            const savedReturns = localStorage.getItem(`user_returns_${userEmail}`);
             if (!savedReturns) return;
 
             const returns = JSON.parse(savedReturns);
             const thirtyDaysAgo = new Date();
             thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-            // Filtrar solo devoluciones recientes
             const recentReturns = returns.filter(returnItem => {
                 const returnDate = new Date(returnItem.returnDate);
                 return returnDate > thirtyDaysAgo;
             });
 
-            // Si se eliminó algo, actualizar localStorage
             if (recentReturns.length !== returns.length) {
-                localStorage.setItem('user_returns', JSON.stringify(recentReturns));
+                localStorage.setItem(`user_returns_${userEmail}`, JSON.stringify(recentReturns));
                 setReturns(recentReturns);
                 console.log(`🗑️ Limpiadas ${returns.length - recentReturns.length} devoluciones antiguas`);
             }
@@ -113,12 +122,12 @@ export const Private = () => {
         if (!file) return;
 
         if (!file.type.startsWith('image/')) {
-            alert('Por favor, selecciona un archivo de imagen válido.');
+            toast.error('Por favor, selecciona un archivo de imagen válido');
             return;
         }
         
         if (file.size > 5 * 1024 * 1024) {
-            alert('La imagen es demasiado grande. El tamaño máximo es 5MB.');
+            toast.error('La imagen es demasiado grande. El tamaño máximo es 5MB');
             return;
         }
         
@@ -144,7 +153,7 @@ export const Private = () => {
             });
         } catch (error) {
             console.error('Error guardando datos:', error);
-            alert('Error al guardar. Inténtalo de nuevo.');
+            toast.error('Error al guardar. Inténtalo de nuevo');
         }
     };
 
@@ -154,10 +163,10 @@ export const Private = () => {
         try {
             saveUserData(formData);
             setIsEditing(false);
-            alert('¡Cambios guardados exitosamente!');
+            toast.success('¡Cambios guardados exitosamente!');
         } catch (error) {
             console.error('Error guardando cambios:', error);
-            alert('Error al guardar los cambios. Inténtalo de nuevo.');
+            toast.error('Error al guardar los cambios. Inténtalo de nuevo');
         } finally {
             setIsSaving(false);
         }
@@ -189,48 +198,44 @@ export const Private = () => {
         }
     };
 
-    // Función para abrir modal de devolución
+    // ========================================
+    // FUNCIONES DE DEVOLUCIONES
+    // ========================================
+
     const handleOpenReturnModal = (order) => {
         setSelectedOrder(order);
-        // Inicializar todos los items como NO seleccionados
         setSelectedItems(order.items.map(() => false));
         setReturnReason('');
         setReturnComments('');
         setShowReturnModal(true);
     };
 
-    // Función para toggle selección de item
     const toggleItemSelection = (index) => {
         const newSelection = [...selectedItems];
         newSelection[index] = !newSelection[index];
         setSelectedItems(newSelection);
     };
 
-    // Función para enviar solicitud de devolución
     const handleSubmitReturn = () => {
-        // Verificar que al menos un item esté seleccionado
         const hasSelectedItems = selectedItems.some(selected => selected);
         
         if (!hasSelectedItems) {
-            alert('Por favor selecciona al menos un producto para devolver');
+            toast.warning('Por favor selecciona al menos un producto para devolver');
             return;
         }
 
         if (!returnReason) {
-            alert('Por favor selecciona un motivo de devolución');
+            toast.warning('Por favor selecciona un motivo de devolución');
             return;
         }
 
-        // Filtrar solo los items seleccionados
         const itemsToReturn = selectedOrder.items.filter((item, index) => selectedItems[index]);
         const itemsToKeep = selectedOrder.items.filter((item, index) => !selectedItems[index]);
 
-        // Calcular total de items a devolver
         const returnTotal = itemsToReturn.reduce((sum, item) => 
             sum + (item.price * item.quantity), 0
         );
 
-        // Crear objeto de devolución
         const returnId = `DEV-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
         const newReturn = {
             id: returnId,
@@ -244,16 +249,18 @@ export const Private = () => {
             items: itemsToReturn
         };
 
-        // Añadir a la lista de devoluciones y guardar en localStorage
+        const userEmail = getUserEmail();
+
+        // Añadir a la lista de devoluciones y guardar en localStorage (por usuario)
         const updatedReturns = [...returns, newReturn];
         setReturns(updatedReturns);
-        localStorage.setItem('user_returns', JSON.stringify(updatedReturns));
+        localStorage.setItem(`user_returns_${userEmail}`, JSON.stringify(updatedReturns));
 
         // Si se devuelven TODOS los items, eliminar el pedido completo
         if (itemsToKeep.length === 0) {
             const updatedOrders = orders.filter(order => order.id !== selectedOrder.id);
             setOrders(updatedOrders);
-            localStorage.setItem('user_orders', JSON.stringify(updatedOrders));
+            localStorage.setItem(`user_orders_${userEmail}`, JSON.stringify(updatedOrders));
         } else {
             // Si quedan items, actualizar el pedido con los items restantes
             const updatedOrders = orders.map(order => {
@@ -270,14 +277,109 @@ export const Private = () => {
                 return order;
             });
             setOrders(updatedOrders);
-            localStorage.setItem('user_orders', JSON.stringify(updatedOrders));
+            localStorage.setItem(`user_orders_${userEmail}`, JSON.stringify(updatedOrders));
         }
 
-        alert('✅ Solicitud de devolución enviada. Te contactaremos pronto.');
+        toast.success('Solicitud de devolución enviada. Te contactaremos pronto');
         setShowReturnModal(false);
     };
 
-    // PERFIL
+    // ========================================
+    // FUNCIONES DE DIRECCIONES
+    // ========================================
+
+    const handleOpenAddressModal = (address = null) => {
+        if (address) {
+            setEditingAddress(address);
+            setAddressForm(address);
+        } else {
+            setEditingAddress(null);
+            setAddressForm({
+                name: '',
+                street: '',
+                city: '',
+                postalCode: '',
+                country: 'España',
+                isDefault: addresses.length === 0 // Primera dirección es predeterminada
+            });
+        }
+        setShowAddressModal(true);
+    };
+
+    const handleAddressFormChange = (field, value) => {
+        setAddressForm(prev => ({ ...prev, [field]: value }));
+    };
+
+    const handleSaveAddress = () => {
+        // Validaciones
+        if (!addressForm.name || !addressForm.street || !addressForm.city || !addressForm.postalCode) {
+            toast.warning('Por favor completa todos los campos obligatorios');
+            return;
+        }
+
+        const userEmail = getUserEmail();
+        let updatedAddresses;
+
+        if (editingAddress) {
+            // Editar dirección existente
+            updatedAddresses = addresses.map(addr => 
+                addr.id === editingAddress.id ? { ...addressForm, id: editingAddress.id } : addr
+            );
+        } else {
+            // Crear nueva dirección
+            const newAddress = {
+                ...addressForm,
+                id: Date.now().toString()
+            };
+            updatedAddresses = [...addresses, newAddress];
+        }
+
+        // Si se marca como predeterminada, quitar la predeterminada anterior
+        if (addressForm.isDefault) {
+            updatedAddresses = updatedAddresses.map(addr => ({
+                ...addr,
+                isDefault: addr.id === (editingAddress?.id || updatedAddresses[updatedAddresses.length - 1].id)
+            }));
+        }
+
+        setAddresses(updatedAddresses);
+        localStorage.setItem(`user_addresses_${userEmail}`, JSON.stringify(updatedAddresses));
+        setShowAddressModal(false);
+        toast.success(editingAddress ? 'Dirección actualizada' : 'Dirección añadida');
+    };
+
+    const handleDeleteAddress = (addressId) => {
+        if (!confirm('¿Estás seguro de eliminar esta dirección?')) return;
+
+        const userEmail = getUserEmail();
+        const updatedAddresses = addresses.filter(addr => addr.id !== addressId);
+        
+        // Si era la predeterminada y quedan direcciones, hacer predeterminada la primera
+        const deletedWasDefault = addresses.find(a => a.id === addressId)?.isDefault;
+        if (deletedWasDefault && updatedAddresses.length > 0) {
+            updatedAddresses[0].isDefault = true;
+        }
+
+        setAddresses(updatedAddresses);
+        localStorage.setItem(`user_addresses_${userEmail}`, JSON.stringify(updatedAddresses));
+        toast.success('Dirección eliminada');
+    };
+
+    const handleSetDefaultAddress = (addressId) => {
+        const userEmail = getUserEmail();
+        const updatedAddresses = addresses.map(addr => ({
+            ...addr,
+            isDefault: addr.id === addressId
+        }));
+        
+        setAddresses(updatedAddresses);
+        localStorage.setItem(`user_addresses_${userEmail}`, JSON.stringify(updatedAddresses));
+    };
+
+    // ========================================
+    // RENDER FUNCIONES
+    // ========================================
+
     const renderProfile = () => (
         <div className="card border-0 shadow-sm">
             <div className="card-body p-4">
@@ -421,7 +523,6 @@ export const Private = () => {
         </div>
     );
 
-    // PEDIDOS Y DEVOLUCIONES
     const renderOrders = () => (
         <>
             <div className="card border-0 shadow-sm">
@@ -629,7 +730,7 @@ export const Private = () => {
                 </div>
             </div>
 
-            {/* Modal de devolución con selector de productos */}
+            {/* Modal de devolución */}
             {showReturnModal && (
                 <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
                     <div className="modal-dialog modal-dialog-centered modal-lg">
@@ -647,7 +748,6 @@ export const Private = () => {
                                     Pedido: <strong>#{selectedOrder?.id}</strong>
                                 </p>
 
-                                {/* Selector de productos */}
                                 <div className="mb-4">
                                     <label className="form-label fw-bold">
                                         Selecciona los productos a devolver <span className="text-danger">*</span>
@@ -751,54 +851,196 @@ export const Private = () => {
         </>
     );
 
-    // DIRECCIONES
     const renderAddresses = () => (
-        <div className="card border-0 shadow-sm">
-            <div className="card-body p-4">
-                <div className="d-flex justify-content-between align-items-center mb-4">
-                    <h4 className="mb-0">Mis Direcciones</h4>
-                    <button className="btn btn-sm btn-dark">
-                        <i className="bi bi-plus-circle me-1"></i>
-                        Añadir dirección
-                    </button>
-                </div>
-                
-                {addresses.length > 0 ? (
-                    <div className="row g-3">
-                        {addresses.map((address) => (
-                            <div key={address.id} className="col-md-6">
-                                <div className={`card h-100 ${address.isDefault ? 'border-dark' : ''}`}>
-                                    <div className="card-body">
-                                        <div className="d-flex justify-content-between align-items-start mb-3">
-                                            <h6 className="mb-0">{address.name}</h6>
-                                            {address.isDefault && (
-                                                <span className="badge bg-dark">Predeterminada</span>
-                                            )}
-                                        </div>
-                                        <p className="mb-1 small">{address.street}</p>
-                                        <p className="mb-1 small">{address.city}, {address.postalCode}</p>
-                                        <p className="mb-3 small text-muted">{address.country}</p>
-                                        <div className="d-flex gap-2">
-                                            <button className="btn btn-sm btn-outline-dark">
-                                                <i className="bi bi-pencil"></i>
-                                            </button>
-                                            <button className="btn btn-sm btn-outline-danger">
-                                                <i className="bi bi-trash"></i>
-                                            </button>
+        <>
+            <div className="card border-0 shadow-sm">
+                <div className="card-body p-4">
+                    <div className="d-flex justify-content-between align-items-center mb-4">
+                        <h4 className="mb-0">Mis Direcciones</h4>
+                        <button 
+                            className="btn btn-sm btn-dark"
+                            onClick={() => handleOpenAddressModal()}
+                        >
+                            <i className="bi bi-plus-circle me-1"></i>
+                            Añadir dirección
+                        </button>
+                    </div>
+                    
+                    {addresses.length > 0 ? (
+                        <div className="row g-3">
+                            {addresses.map((address) => (
+                                <div key={address.id} className="col-md-6">
+                                    <div className={`card h-100 ${address.isDefault ? 'border-dark border-2' : ''}`}>
+                                        <div className="card-body">
+                                            <div className="d-flex justify-content-between align-items-start mb-3">
+                                                <h6 className="mb-0">{address.name}</h6>
+                                                {address.isDefault && (
+                                                    <span className="badge bg-dark">Predeterminada</span>
+                                                )}
+                                            </div>
+                                            <p className="mb-1 small">{address.street}</p>
+                                            <p className="mb-1 small">{address.city}, {address.postalCode}</p>
+                                            <p className="mb-3 small text-muted">{address.country}</p>
+                                            <div className="d-flex gap-2">
+                                                <button 
+                                                    className="btn btn-sm btn-outline-dark"
+                                                    onClick={() => handleOpenAddressModal(address)}
+                                                    title="Editar"
+                                                >
+                                                    <i className="bi bi-pencil"></i>
+                                                </button>
+                                                {!address.isDefault && (
+                                                    <button 
+                                                        className="btn btn-sm btn-outline-primary"
+                                                        onClick={() => handleSetDefaultAddress(address.id)}
+                                                        title="Marcar como predeterminada"
+                                                    >
+                                                        <i className="bi bi-star"></i>
+                                                    </button>
+                                                )}
+                                                <button 
+                                                    className="btn btn-sm btn-outline-danger"
+                                                    onClick={() => handleDeleteAddress(address.id)}
+                                                    title="Eliminar"
+                                                >
+                                                    <i className="bi bi-trash"></i>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <div className="text-center py-4 bg-light rounded">
-                        <i className="bi bi-geo-alt text-muted" style={{ fontSize: '3rem' }}></i>
-                        <p className="mt-2 text-muted mb-0">No tienes direcciones guardadas</p>
-                    </div>
-                )}
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center py-4 bg-light rounded">
+                            <i className="bi bi-geo-alt text-muted" style={{ fontSize: '3rem' }}></i>
+                            <p className="mt-2 text-muted mb-2">No tienes direcciones guardadas</p>
+                            <button 
+                                className="btn btn-dark btn-sm"
+                                onClick={() => handleOpenAddressModal()}
+                            >
+                                <i className="bi bi-plus-circle me-1"></i>
+                                Añadir primera dirección
+                            </button>
+                        </div>
+                    )}
+                </div>
             </div>
-        </div>
+
+            {/* Modal de dirección */}
+            {showAddressModal && (
+                <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                    <div className="modal-dialog modal-dialog-centered">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h5 className="modal-title">
+                                    {editingAddress ? 'Editar Dirección' : 'Nueva Dirección'}
+                                </h5>
+                                <button 
+                                    type="button" 
+                                    className="btn-close"
+                                    onClick={() => setShowAddressModal(false)}
+                                ></button>
+                            </div>
+                            <div className="modal-body">
+                                <div className="mb-3">
+                                    <label className="form-label fw-bold">
+                                        Nombre <span className="text-danger">*</span>
+                                    </label>
+                                    <input 
+                                        type="text"
+                                        className="form-control"
+                                        placeholder="Ej: Casa, Trabajo, etc."
+                                        value={addressForm.name}
+                                        onChange={(e) => handleAddressFormChange('name', e.target.value)}
+                                    />
+                                </div>
+
+                                <div className="mb-3">
+                                    <label className="form-label fw-bold">
+                                        Dirección <span className="text-danger">*</span>
+                                    </label>
+                                    <input 
+                                        type="text"
+                                        className="form-control"
+                                        placeholder="Calle, número, piso..."
+                                        value={addressForm.street}
+                                        onChange={(e) => handleAddressFormChange('street', e.target.value)}
+                                    />
+                                </div>
+
+                                <div className="row">
+                                    <div className="col-md-8 mb-3">
+                                        <label className="form-label fw-bold">
+                                            Ciudad <span className="text-danger">*</span>
+                                        </label>
+                                        <input 
+                                            type="text"
+                                            className="form-control"
+                                            placeholder="Barcelona"
+                                            value={addressForm.city}
+                                            onChange={(e) => handleAddressFormChange('city', e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="col-md-4 mb-3">
+                                        <label className="form-label fw-bold">
+                                            C.P. <span className="text-danger">*</span>
+                                        </label>
+                                        <input 
+                                            type="text"
+                                            className="form-control"
+                                            placeholder="08001"
+                                            value={addressForm.postalCode}
+                                            onChange={(e) => handleAddressFormChange('postalCode', e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="mb-3">
+                                    <label className="form-label fw-bold">País</label>
+                                    <input 
+                                        type="text"
+                                        className="form-control"
+                                        value={addressForm.country}
+                                        onChange={(e) => handleAddressFormChange('country', e.target.value)}
+                                    />
+                                </div>
+
+                                <div className="form-check">
+                                    <input 
+                                        className="form-check-input" 
+                                        type="checkbox" 
+                                        id="isDefault"
+                                        checked={addressForm.isDefault}
+                                        onChange={(e) => handleAddressFormChange('isDefault', e.target.checked)}
+                                    />
+                                    <label className="form-check-label" htmlFor="isDefault">
+                                        Marcar como dirección predeterminada
+                                    </label>
+                                </div>
+                            </div>
+                            <div className="modal-footer">
+                                <button 
+                                    type="button" 
+                                    className="btn btn-secondary"
+                                    onClick={() => setShowAddressModal(false)}
+                                >
+                                    Cancelar
+                                </button>
+                                <button 
+                                    type="button" 
+                                    className="btn btn-dark"
+                                    onClick={handleSaveAddress}
+                                >
+                                    <i className="bi bi-check-circle me-2"></i>
+                                    {editingAddress ? 'Actualizar' : 'Guardar'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </>
     );
 
     const renderContent = () => {
@@ -813,14 +1055,13 @@ export const Private = () => {
     const sidebarItems = [
         { key: "perfil", icon: "bi-person", label: "Mi perfil" },
         { key: "pedidos", icon: "bi-box-seam", label: "Pedidos y devoluciones", badge: orders.length + returns.length },
-        { key: "direcciones", icon: "bi-geo-alt", label: "Direcciones" }
+        { key: "direcciones", icon: "bi-geo-alt", label: "Direcciones", badge: addresses.length }
     ];
 
     return (
         <div className="bg-light min-vh-100 py-4">
             <div className="container">
                 <div className="row g-4">
-                    {/* Sidebar */}
                     <div className="col-lg-3">
                         <div className="card border-0 shadow-sm sticky-top" style={{ top: '20px' }}>
                             <div className="card-body p-0">
@@ -866,7 +1107,6 @@ export const Private = () => {
                         </div>
                     </div>
                     
-                    {/* Content */}
                     <div className="col-lg-9">
                         {renderContent()}
                     </div>

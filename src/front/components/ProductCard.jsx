@@ -1,11 +1,13 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import useGlobalReducer from '../hooks/useGlobalReducer';
+import useToast from '../hooks/useToast';
 import "../styles/productos.css";
 
 const ProductCard = ({ product }) => {
   const navigate = useNavigate();
   const { dispatch } = useGlobalReducer();
+  const toast = useToast();
 
   // Navegar al detalle del producto
   const handleCardClick = () => {
@@ -37,7 +39,7 @@ const ProductCard = ({ product }) => {
     localStorage.setItem("cart", JSON.stringify(currentCart));
     dispatch({ type: "SET_CART", payload: currentCart });
     
-    alert(`✅ ${product.name} añadido al carrito!`);
+    toast.success(`${product.name} añadido al carrito`);
   };
 
   // Renderizar estrellas
