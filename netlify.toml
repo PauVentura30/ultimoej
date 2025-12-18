@@ -1,6 +1,6 @@
 [build]
-  base = "src/front"
-  command = "npm run build"
+  base = ""
+  command = "cd src/front && npm install && npm run build"
   publish = "dist"
 
 [[redirects]]
