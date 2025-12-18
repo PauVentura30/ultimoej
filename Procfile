@@ -1,1 +1,1 @@
-web: cd src && python init_db.py && gunicorn wsgi:app --chdir api
+web: python src/init_db.py && cd src/api && gunicorn wsgi:app
