@@ -1,2 +1,1 @@
-release: pipenv run upgrade
-web: gunicorn wsgi --chdir ./src/
+web: cd src && python init_db.py && gunicorn wsgi:app --chdir api
