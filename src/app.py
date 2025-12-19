@@ -113,13 +113,6 @@ with app.app_context():
     except Exception as e:
         print(f"⚠️ Error creando tablas: {e}")
 
-# Insertar productos si la BD está vacía
-    from api.models import Product
-    if Product.query.count() == 0:
-        print("🛍️ No hay productos, insertando...")
-        from api.commands import insert_products
-        insert_products.callback()
-
 # Ruta principal que genera sitemap en desarrollo o sirve index.html en producción
 @app.route('/')
 def sitemap():
