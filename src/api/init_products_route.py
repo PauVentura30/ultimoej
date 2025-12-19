@@ -166,3 +166,18 @@ def init_products():
     db.session.commit()
     
     return jsonify({"message": f"✅ {added} productos añadidos correctamente. Total: {Product.query.count()}"}), 200
+
+@init_bp.route('/delete-bad-products', methods=['GET'])
+def delete_bad_products():
+    """Borrar los 5 productos incorrectos"""
+    ids_to_delete = [1, 2, 3, 4, 5]
+    deleted = 0
+    
+    for product_id in ids_to_delete:
+        product = Product.query.get(product_id)
+        if product:
+            db.session.delete(product)
+            deleted += 1
+    
+    db.session.commit()
+    return jsonify({"message": f"✅ {deleted} productos incorrectos borrados"}), 200
